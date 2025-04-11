@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import PracticeCard from '../../../components/PracticeCard';
 import QuizButton from '../../../components/QuizButton';
+import AnimatedBackground from '../../../components/AnimatedBackground';
 import { Practice, filterPractices } from '../../../data/practices';
 
 export default function ResultsPage() {
@@ -25,173 +26,136 @@ export default function ResultsPage() {
       // Показываем кнопку "Назад" в хедере
       telegram.BackButton.show();
       telegram.BackButton.onClick(() => {
-        router.back();
+        router.push('/quiz/body');
       });
     }
 
-    // Получаем данные из sessionStorage
-    const loadResults = () => {
-      setIsLoading(true);
-      
-      try {
-        // Проверяем наличие состояния для телесной практики
-        const bodyQuizStateStr = sessionStorage.getItem('bodyQuizState');
-        
-        if (bodyQuizStateStr) {
-          const bodyQuizState = JSON.parse(bodyQuizStateStr);
-          
-          // Преобразуем данные из квиза в параметры фильтрации
-          const filters: any = {
-            practiceType: 'body'
-          };
-          
-          // Применяем фильтры в зависимости от типа телесной практики
-          if (bodyQuizState.bodyType) {
-            filters.bodyType = bodyQuizState.bodyType;
-          }
-          
-          if (bodyQuizState.difficulty) {
-            filters.difficulty = bodyQuizState.difficulty;
-          }
-          
-          if (bodyQuizState.duration) {
-            switch (bodyQuizState.duration) {
-              case 'short':
-                filters.duration = [5, 15];
-                break;
-              case 'medium':
-                filters.duration = [15, 30];
-                break;
-              case 'long':
-                filters.duration = [30, 999];
-                break;
-            }
-          }
-          
-          if (bodyQuizState.goal) {
-            switch (bodyQuizState.goal) {
-              case 'relax':
-                filters.goals = ['расслабление', 'снятие стресса'];
-                break;
-              case 'flexibility':
-                filters.goals = ['гибкость'];
-                break;
-              case 'strength':
-                filters.goals = ['сила', 'тонус мышц'];
-                break;
-              case 'balance':
-                filters.goals = ['баланс', 'концентрация'];
-                break;
-            }
-          }
-          
-          // Фильтруем практики
-          const practices = filterPractices(filters);
-          setFilteredPractices(practices);
-        }
-      } catch (error) {
-        console.error('Ошибка при загрузке результатов:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadResults();
+    // Имитация загрузки данных
+    setTimeout(() => {
+      // Фильтруем практики на основе параметров
+      const filtered = filterPractices({
+        practiceType: 'body',
+        duration: [15, 30],
+        goals: ['расслабление', 'гибкость']
+      });
+      setFilteredPractices(filtered);
+      setIsLoading(false);
+    }, 1000);
   }, [router]);
 
   const handleSelectPractice = (practice: Practice) => {
-    // Здесь бы был переход к конкретной практике
-    if (tg) {
-      tg.showAlert(`Вы выбрали практику: ${practice.title}`);
-    } else {
-      alert(`Вы выбрали практику: ${practice.title}`);
-    }
+    // В реальном приложении здесь был бы переход к практике
+    router.push(`/practice/${practice.id}`);
   };
 
-  const handleBackToHome = () => {
-    router.push('/');
-  };
-
-  const handleStartOver = () => {
-    // Очищаем данные квиза
-    sessionStorage.removeItem('bodyQuizState');
-    router.push('/quiz');
+  const handleBack = () => {
+    router.push('/quiz/body');
   };
 
   return (
-    <div style={{ padding: '16px' }}>
-      <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ 
-          fontFamily: 'Montserrat', 
-          fontWeight: 600, 
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: '100vh',
+      maxWidth: '375px',
+      margin: '0 auto',
+      backgroundColor: '#FFFFFF',
+      position: 'relative'
+    }}>
+      {/* Анимированный фон с кругами */}
+      <AnimatedBackground opacity={0.15} showHumanIcon={false} gradientColors="#73C570, #05DD49" />
+
+      {/* Заголовок */}
+      <div style={{
+        padding: '24px 16px 16px 16px',
+        zIndex: 2,
+        position: 'relative'
+      }}>
+        <h1 style={{
+          fontFamily: 'Montserrat',
+          fontWeight: 600,
           fontSize: '24px',
           color: '#242424',
           margin: 0,
           marginBottom: '8px'
         }}>
-          Рекомендуемые практики
+          Ваши практики
         </h1>
-        <p style={{ 
-          fontFamily: 'Inter', 
-          fontWeight: 400, 
-          fontSize: '16px',
-          color: '#8C8C8C',
-          margin: 0
-        }}>
-          Выберите практику для начала
-        </p>
       </div>
-      
-      {isLoading ? (
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center',
-          height: '200px' 
-        }}>
-          <p>Загрузка...</p>
-        </div>
-      ) : filteredPractices.length > 0 ? (
-        <div style={{ marginBottom: '24px' }}>
-          {filteredPractices.map((practice) => (
-            <PracticeCard 
-              key={practice.id} 
-              practice={practice} 
-              onClick={handleSelectPractice} 
-            />
-          ))}
-        </div>
-      ) : (
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          justifyContent: 'center', 
-          alignItems: 'center',
-          height: '200px',
-          textAlign: 'center',
-          gap: '16px'
-        }}>
-          <p style={{ 
-            fontFamily: 'Inter', 
-            fontWeight: 400, 
-            fontSize: '16px',
-            color: '#8C8C8C'
+
+      {/* Список практик */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '0 16px 24px 16px',
+        zIndex: 2,
+        position: 'relative'
+      }}>
+        {isLoading ? (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '200px'
           }}>
-            Подходящих практик не найдено
-          </p>
-        </div>
-      )}
-      
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div 
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                border: '3px solid #F1F1F1',
+                borderTopColor: '#337FFF',
+                animation: 'spin 1s linear infinite',
+              }}
+            />
+            <style jsx>{`
+              @keyframes spin {
+                to {
+                  transform: rotate(360deg);
+                }
+              }
+            `}</style>
+          </div>
+        ) : (
+          <>
+            {filteredPractices.length > 0 ? (
+              filteredPractices.map((practice) => (
+                <PracticeCard
+                  key={practice.id}
+                  practice={practice}
+                  onClick={handleSelectPractice}
+                />
+              ))
+            ) : (
+              <div style={{
+                textAlign: 'center',
+                padding: '32px 0'
+              }}>
+                <p style={{
+                  fontFamily: 'Inter',
+                  fontSize: '16px',
+                  color: '#8C8C8C'
+                }}>
+                  Пока нет подходящих практик
+                </p>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Нижняя панель с кнопками */}
+      <div style={{
+        padding: '16px',
+        borderTop: '1px solid #F5F5F5',
+        zIndex: 3,
+        position: 'relative',
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: 'blur(5px)'
+      }}>
         <QuizButton 
-          text="На главную" 
-          onClick={handleBackToHome} 
-          primary={true}
-        />
-        
-        <QuizButton 
-          text="Начать заново" 
-          onClick={handleStartOver} 
+          text="Изменить параметры" 
+          onClick={handleBack} 
           primary={false}
         />
       </div>

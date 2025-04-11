@@ -1,96 +1,120 @@
 import React, { ReactNode, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import QuizButton from './QuizButton';
+import AnimatedBackground from './AnimatedBackground';
 
 interface QuizLayoutProps {
-  title: string;
-  subtitle?: string;
   children: ReactNode;
-  onNext: () => void;
-  onBack?: () => void;
-  nextText?: string;
-  backText?: string;
-  nextDisabled?: boolean;
+  title: string;
+  showBackButton?: boolean;
+  showContinueButton?: boolean;
+  onBackClick?: () => void;
+  onContinueClick?: () => void;
+  continueDisabled?: boolean;
   autoAdvance?: boolean;
   selectedOption?: string | null;
 }
 
 export default function QuizLayout({
-  title,
-  subtitle,
   children,
-  onNext,
-  onBack,
-  nextText = 'Продолжить',
-  backText = 'Назад',
-  nextDisabled = false,
+  title,
+  showBackButton = true,
+  showContinueButton = true,
+  onBackClick,
+  onContinueClick,
+  continueDisabled = false,
   autoAdvance = false,
-  selectedOption = null
+  selectedOption = null,
 }: QuizLayoutProps) {
-  // Автоматический переход, если выбрана опция и включен autoAdvance
+  const router = useRouter();
+
+  // Если выбран вариант и включен автоматический переход, запускаем таймер для перехода
   useEffect(() => {
-    if (autoAdvance && selectedOption !== null && !nextDisabled) {
+    if (autoAdvance && selectedOption && onContinueClick) {
       const timer = setTimeout(() => {
-        onNext();
-      }, 300); // Небольшая задержка для анимации
+        onContinueClick();
+      }, 400); // Задержка для анимации
       
       return () => clearTimeout(timer);
     }
-  }, [selectedOption, autoAdvance, nextDisabled, onNext]);
+  }, [autoAdvance, selectedOption, onContinueClick]);
+
+  // Обработчик нажатия кнопки "Назад" в интерфейсе
+  const handleBackClick = () => {
+    if (onBackClick) {
+      onBackClick();
+    } else {
+      router.back();
+    }
+  };
 
   return (
     <div style={{
-      padding: '16px',
       display: 'flex',
       flexDirection: 'column',
-      minHeight: 'calc(100vh - 32px)',
-      justifyContent: 'space-between'
+      height: '100vh',
+      maxWidth: '375px',
+      margin: '0 auto',
+      backgroundColor: '#FFFFFF',
+      position: 'relative'
     }}>
-      <div>
-        <div style={{ marginBottom: '24px' }}>
-          <h1 style={{ 
-            fontFamily: 'Montserrat', 
-            fontWeight: 600, 
-            fontSize: '24px',
-            color: '#242424',
-            margin: 0,
-            marginBottom: subtitle ? '8px' : 0
-          }}>
-            {title}
-          </h1>
-          
-          {subtitle && (
-            <p style={{ 
-              fontFamily: 'Inter', 
-              fontWeight: 400, 
-              fontSize: '16px',
-              color: '#8C8C8C',
-              margin: 0
-            }}>
-              {subtitle}
-            </p>
-          )}
-        </div>
-        
-        <div style={{ marginBottom: '32px' }}>
-          {children}
-        </div>
-      </div>
+      {/* Анимированный фон с кругами */}
+      <AnimatedBackground opacity={0.2} showHumanIcon={false} />
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {!autoAdvance && (
+      {/* Заголовок */}
+      <div style={{
+        padding: '24px 16px 16px 16px',
+        zIndex: 2,
+        position: 'relative'
+      }}>
+        <h1 style={{
+          fontFamily: 'Montserrat',
+          fontWeight: 600,
+          fontSize: '24px',
+          color: '#242424',
+          margin: 0,
+          marginBottom: '8px'
+        }}>
+          {title}
+        </h1>
+      </div>
+
+      {/* Основной контент */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '0 16px 24px 16px',
+        zIndex: 2,
+        position: 'relative'
+      }}>
+        {children}
+      </div>
+
+      {/* Кнопки навигации */}
+      <div style={{
+        padding: '16px',
+        borderTop: '1px solid #F5F5F5',
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '12px',
+        zIndex: 3,
+        position: 'relative',
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: 'blur(5px)'
+      }}>
+        {showBackButton && (
           <QuizButton 
-            text={nextText} 
-            onClick={onNext} 
-            primary={true}
-            disabled={nextDisabled}
+            text="Назад" 
+            onClick={handleBackClick} 
+            primary={false}
           />
         )}
         
-        {onBack && (
+        {showContinueButton && (
           <QuizButton 
-            text={backText} 
-            onClick={onBack} 
-            primary={false}
+            text="Продолжить" 
+            onClick={onContinueClick || (() => {})} 
+            disabled={continueDisabled}
           />
         )}
       </div>
