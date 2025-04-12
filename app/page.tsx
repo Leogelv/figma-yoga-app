@@ -27,6 +27,10 @@ export default function Home() {
   const handleChoosePractice = () => {
     router.push('/quiz');
   };
+  
+  const handleFigmaYoga = () => {
+    router.push('/figma-yoga');
+  };
 
   return (
     <main style={{ 
@@ -199,41 +203,76 @@ export default function Home() {
             }}
             onClick={handleQuickPractice}
           >
-            <span style={{ 
-              fontFamily: 'Montserrat', 
-              fontWeight: 500, 
+            <span style={{
+              fontFamily: 'Montserrat',
+              fontWeight: 600,
               fontSize: '16px',
-              color: '#000000'
-            }}>Практика 7 мин</span>
+              color: '#242424',
+              textAlign: 'left'
+            }}>
+              Быстрая практика
+            </span>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 6L15 12L9 18" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M9 18L15 12L9 6" stroke="#242424" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-
+          
           <button 
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              background: '#F7F7F7',
+              background: '#337FFF',
               borderRadius: '16px',
               padding: '16px',
               width: '100%',
               height: '56px',
               border: 'none',
-              marginBottom: '16px',
+              marginBottom: '12px',
               cursor: 'pointer'
             }}
             onClick={handleChoosePractice}
           >
-            <span style={{ 
-              fontFamily: 'Montserrat', 
-              fontWeight: 500, 
+            <span style={{
+              fontFamily: 'Montserrat',
+              fontWeight: 600,
               fontSize: '16px',
-              color: '#000000'
-            }}>Выбрать практику</span>
+              color: '#FFFFFF',
+              textAlign: 'left'
+            }}>
+              Выбрать практику
+            </span>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 6L15 12L9 18" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M9 18L15 12L9 6" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          
+          <button 
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              background: '#F0F7FF',
+              borderRadius: '16px',
+              padding: '16px',
+              width: '100%',
+              height: '56px',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+            onClick={handleFigmaYoga}
+          >
+            <span style={{
+              fontFamily: 'Montserrat',
+              fontWeight: 600,
+              fontSize: '16px',
+              color: '#337FFF',
+              textAlign: 'left'
+            }}>
+              Figma Yoga
+            </span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 18L15 12L9 6" stroke="#337FFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
         </div>
@@ -344,6 +383,78 @@ export default function Home() {
         margin: '4px 0',
         zIndex: 11
       }}></div>
+
+      {/* Bottom navigation */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '16px 36px',
+        background: '#FFFFFF',
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '76px',
+        zIndex: 4,
+        maxWidth: '375px',
+        margin: '0 auto',
+        borderTop: '1px solid #F5F5F5'
+      }}>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          gap: '4px',
+          opacity: 1
+        }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9.15722 20.7714V17.7047C9.1572 16.9246 9.79312 16.2908 10.581 16.2856H13.4671C14.2587 16.2856 14.9005 16.9209 14.9005 17.7047V17.7047V20.7809C14.9003 21.4432 15.4343 21.9845 16.103 22H18.0271C19.9451 22 21.5 20.4607 21.5 18.5618V18.5618V9.83784C21.4898 9.09083 21.1355 8.38935 20.538 7.93303L13.9577 2.6853C12.8049 1.77157 11.1662 1.77157 10.0134 2.6853L3.46203 7.94256C2.86226 8.39702 2.50739 9.09967 2.5 9.84736V18.5618C2.5 20.4607 4.05488 22 5.97291 22H7.89696C8.58235 22 9.13797 21.4499 9.13797 20.7714V20.7714" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span style={{ 
+            fontFamily: 'Inter', 
+            fontWeight: 500, 
+            fontSize: '12px', 
+            color: '#000000'
+          }}>Главная</span>
+        </div>
+        
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          gap: '4px',
+          opacity: 0.5
+        }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6.5H21M3 12H21M3 17.5H21" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span style={{ 
+            fontFamily: 'Inter', 
+            fontWeight: 500, 
+            fontSize: '12px', 
+            color: '#000000'
+          }}>Библиотека</span>
+        </div>
+        
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          gap: '4px',
+          opacity: 0.5
+        }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M20.5899 22C20.5899 18.13 16.7399 15 11.9999 15C7.25991 15 3.40991 18.13 3.40991 22" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span style={{ 
+            fontFamily: 'Inter', 
+            fontWeight: 500, 
+            fontSize: '12px', 
+            color: '#000000'
+          }}>Профиль</span>
+        </div>
+      </div>
     </main>
   );
 }

@@ -32,6 +32,16 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 node scripts/placeholder-images.js
 ```
 
+### Figma-практики
+
+В проекте реализована интеграция с Figma. Практики из Figma хранятся в директории `public/images/practices/figma/`. Для загрузки изображений можно использовать скрипт:
+
+```bash
+./scripts/download-figma-images.sh
+```
+
+Для получения детальной информации о Figma-практиках см. [документацию по Figma-практикам](./docs/figma-practices.md).
+
 ### Типы практик
 
 В приложении представлены следующие типы практик:

@@ -1,3 +1,5 @@
+import { fetchPractices, getPracticeImageUrl, mapDifficulty, mapPracticeType, parseDuration } from '../services/api';
+
 export interface Practice {
   id: string;
   title: string;
@@ -14,16 +16,17 @@ export interface Practice {
   instructor: string; // имя инструктора
   audioUrl?: string; // для медитаций и дыхательных практик
   videoUrl?: string; // для телесных практик
+  originalData?: any; // Оригинальные данные из API
 }
 
-// Демо-данные для практик
-export const practices: Practice[] = [
+// Демо-данные для практик, используются если API недоступен
+export const mockPractices: Practice[] = [
   // Телесные практики - йога
   {
     id: 'body-1',
     title: 'Утренняя йога для бодрости',
     description: 'Мягкая утренняя практика для пробуждения и заряда энергией на весь день',
-    imageUrl: '/images/practices/morning-yoga.jpg',
+    imageUrl: '/images/practices/default-practice.jpg',
     duration: 15,
     practiceType: 'body',
     difficulty: 'beginner',
@@ -31,87 +34,14 @@ export const practices: Practice[] = [
     goals: ['энергия', 'гибкость'],
     bodyType: 'yoga',
     instructor: 'Даниил Чернолуцкий',
-    videoUrl: '/videos/morning-yoga.mp4'
+    videoUrl: 'https://player.vimeo.com/video/123456789'
   },
-  {
-    id: 'body-2',
-    title: 'Йога для снятия напряжения',
-    description: 'Практика направлена на снятие напряжения в плечах и шее после долгого рабочего дня',
-    imageUrl: '/images/practices/tension-relief.jpg',
-    duration: 20,
-    practiceType: 'body',
-    difficulty: 'beginner',
-    tags: ['вечер', 'расслабление', 'снятие напряжения'],
-    goals: ['расслабление', 'снятие стресса'],
-    bodyType: 'yoga',
-    instructor: 'Даниил Чернолуцкий',
-    videoUrl: '/videos/tension-relief.mp4'
-  },
-  {
-    id: 'body-3',
-    title: 'Силовая йога',
-    description: 'Интенсивная практика для укрепления мышц и улучшения выносливости',
-    imageUrl: '/images/practices/power-yoga.jpg',
-    duration: 30,
-    practiceType: 'body',
-    difficulty: 'intermediate',
-    tags: ['сила', 'укрепление', 'выносливость'],
-    goals: ['сила', 'тонус мышц'],
-    bodyType: 'yoga',
-    instructor: 'Даниил Чернолуцкий',
-    videoUrl: '/videos/power-yoga.mp4'
-  },
-  {
-    id: 'body-4',
-    title: 'Продвинутая практика баланса',
-    description: 'Сложная практика с акцентом на балансы и перевернутые позы',
-    imageUrl: '/images/practices/balance-yoga.jpg',
-    duration: 45,
-    practiceType: 'body',
-    difficulty: 'advanced',
-    tags: ['баланс', 'сложные позы', 'концентрация'],
-    goals: ['баланс', 'сила', 'концентрация'],
-    bodyType: 'yoga',
-    instructor: 'Даниил Чернолуцкий',
-    videoUrl: '/videos/balance-yoga.mp4'
-  },
-
-  // Телесные практики - осанка
-  {
-    id: 'body-5',
-    title: 'Коррекция осанки для начинающих',
-    description: 'Базовые упражнения для улучшения осанки и профилактики болей в спине',
-    imageUrl: '/images/practices/posture-beginner.jpg',
-    duration: 15,
-    practiceType: 'body',
-    difficulty: 'beginner',
-    tags: ['осанка', 'спина', 'профилактика'],
-    goals: ['здоровая спина', 'правильная осанка'],
-    bodyType: 'posture',
-    instructor: 'Даниил Чернолуцкий',
-    videoUrl: '/videos/posture-beginner.mp4'
-  },
-  {
-    id: 'body-6',
-    title: 'Укрепление мышц спины',
-    description: 'Комплекс упражнений для укрепления мышечного корсета и поддержания правильной осанки',
-    imageUrl: '/images/practices/back-strength.jpg',
-    duration: 25,
-    practiceType: 'body',
-    difficulty: 'intermediate',
-    tags: ['осанка', 'спина', 'укрепление'],
-    goals: ['сила спины', 'профилактика болей'],
-    bodyType: 'posture',
-    instructor: 'Даниил Чернолуцкий',
-    videoUrl: '/videos/back-strength.mp4'
-  },
-
-  // Медитативные практики
+  // Сокращаем до 3 примеров для упрощения
   {
     id: 'meditation-1',
     title: 'Медитация для расслабления',
     description: 'Мягкая медитация для снятия стресса и глубокого расслабления',
-    imageUrl: '/images/practices/relaxation-meditation.jpg',
+    imageUrl: '/images/practices/default-practice.jpg',
     duration: 10,
     practiceType: 'meditation',
     difficulty: 'beginner',
@@ -119,57 +49,13 @@ export const practices: Practice[] = [
     goals: ['расслабление', 'спокойствие'],
     meditationType: 'relaxation',
     instructor: 'Даниил Чернолуцкий',
-    audioUrl: '/audio/relaxation-meditation.mp3'
+    audioUrl: 'https://example.com/audio/relaxation-meditation.mp3'
   },
-  {
-    id: 'meditation-2',
-    title: 'Медитация перед сном',
-    description: 'Практика для глубокого расслабления и подготовки к здоровому сну',
-    imageUrl: '/images/practices/sleep-meditation.jpg',
-    duration: 15,
-    practiceType: 'meditation',
-    difficulty: 'beginner',
-    tags: ['сон', 'вечер', 'расслабление'],
-    goals: ['здоровый сон', 'расслабление'],
-    meditationType: 'sleep',
-    instructor: 'Даниил Чернолуцкий',
-    audioUrl: '/audio/sleep-meditation.mp3'
-  },
-  {
-    id: 'meditation-3',
-    title: 'Медитация для концентрации',
-    description: 'Практика для улучшения фокуса внимания и продуктивности',
-    imageUrl: '/images/practices/focus-meditation.jpg',
-    duration: 12,
-    practiceType: 'meditation',
-    difficulty: 'intermediate',
-    tags: ['концентрация', 'фокус', 'продуктивность'],
-    goals: ['концентрация', 'ясность ума'],
-    meditationType: 'concentration',
-    instructor: 'Даниил Чернолуцкий',
-    audioUrl: '/audio/focus-meditation.mp3'
-  },
-  {
-    id: 'meditation-4',
-    title: 'Работа с эмоциями',
-    description: 'Практика для распознавания и трансформации сложных эмоциональных состояний',
-    imageUrl: '/images/practices/emotions-meditation.jpg',
-    duration: 20,
-    practiceType: 'meditation',
-    difficulty: 'advanced',
-    tags: ['эмоции', 'осознанность', 'принятие'],
-    goals: ['эмоциональный баланс', 'принятие'],
-    meditationType: 'emotions',
-    instructor: 'Даниил Чернолуцкий',
-    audioUrl: '/audio/emotions-meditation.mp3'
-  },
-
-  // Дыхательные практики
   {
     id: 'breathing-1',
     title: 'Утренняя дыхательная практика',
     description: 'Энергетическое дыхание для бодрости и заряда энергией',
-    imageUrl: '/images/practices/morning-breathing.jpg',
+    imageUrl: '/images/practices/default-practice.jpg',
     duration: 5,
     practiceType: 'breathing',
     difficulty: 'beginner',
@@ -177,51 +63,117 @@ export const practices: Practice[] = [
     goals: ['энергия', 'ясность ума'],
     breathingIntensity: 'medium',
     instructor: 'Даниил Чернолуцкий',
-    audioUrl: '/audio/morning-breathing.mp3'
-  },
-  {
-    id: 'breathing-2',
-    title: 'Дыхание для расслабления',
-    description: 'Мягкая дыхательная практика для снятия напряжения и стресса',
-    imageUrl: '/images/practices/relax-breathing.jpg',
-    duration: 7,
-    practiceType: 'breathing',
-    difficulty: 'beginner',
-    tags: ['расслабление', 'стресс', 'вечер'],
-    goals: ['расслабление', 'спокойствие'],
-    breathingIntensity: 'mild',
-    instructor: 'Даниил Чернолуцкий',
-    audioUrl: '/audio/relax-breathing.mp3'
-  },
-  {
-    id: 'breathing-3',
-    title: 'Дыхание Уджайи',
-    description: 'Классическая йогическая дыхательная практика для концентрации и энергии',
-    imageUrl: '/images/practices/ujjayi-breathing.jpg',
-    duration: 10,
-    practiceType: 'breathing',
-    difficulty: 'intermediate',
-    tags: ['концентрация', 'энергия', 'йога'],
-    goals: ['концентрация', 'энергетический баланс'],
-    breathingIntensity: 'medium',
-    instructor: 'Даниил Чернолуцкий',
-    audioUrl: '/audio/ujjayi-breathing.mp3'
-  },
-  {
-    id: 'breathing-4',
-    title: 'Вим Хоф дыхание',
-    description: 'Интенсивная дыхательная практика для укрепления иммунитета и выносливости',
-    imageUrl: '/images/practices/wim-hof-breathing.jpg',
-    duration: 15,
-    practiceType: 'breathing',
-    difficulty: 'advanced',
-    tags: ['интенсивное', 'иммунитет', 'выносливость'],
-    goals: ['иммунитет', 'энергия', 'сила'],
-    breathingIntensity: 'intense',
-    instructor: 'Даниил Чернолуцкий',
-    audioUrl: '/audio/wim-hof-breathing.mp3'
+    audioUrl: 'https://example.com/audio/morning-breathing.mp3'
   }
 ];
+
+// Переменная для хранения загруженных практик
+let practices: Practice[] = [];
+
+// Функция для конвертации данных API в формат практик
+export const convertApiToPractice = (apiData: any[]): Practice[] => {
+  if (!apiData || !Array.isArray(apiData)) return [];
+
+  return apiData
+    .filter(item => 
+      // Фильтруем только практики (не черновики)
+      item && !item.draft && (item.type === 'практика' || item.type === 'медитация')
+    )
+    .map(item => {
+      const systemType = item['Yo.System'] || '';
+      const practiceType = mapPracticeType(systemType);
+      
+      // Определяем цели практики на основе названия или типа
+      let goals: string[] = [];
+      let tags: string[] = [];
+      
+      if (item.name) {
+        const nameLower = item.name.toLowerCase();
+        if (nameLower.includes('бодрость') || nameLower.includes('утр')) {
+          goals.push('энергия');
+          tags.push('утро');
+        }
+        if (nameLower.includes('сон') || nameLower.includes('расслабл')) {
+          goals.push('расслабление');
+          tags.push('вечер');
+        }
+        if (nameLower.includes('сил') || nameLower.includes('мышц')) {
+          goals.push('сила');
+          tags.push('укрепление');
+        }
+      }
+      
+      // Если не удалось определить цели, добавляем базовые
+      if (goals.length === 0) {
+        if (practiceType === 'body') {
+          goals.push('гибкость', 'сила');
+        } else if (practiceType === 'meditation') {
+          goals.push('расслабление', 'концентрация');
+        } else {
+          goals.push('энергия', 'здоровье');
+        }
+      }
+      
+      // Получаем URL для изображения
+      const imageUrl = getPracticeImageUrl(item.vimeo, item.kinescope);
+      
+      // Формируем URL для видео если есть
+      let videoUrl = undefined;
+      if (item.vimeo) {
+        videoUrl = `https://player.vimeo.com/video/${item.vimeo}`;
+      } else if (item.kinescope) {
+        videoUrl = item.kinescope;
+      }
+      
+      // Формируем URL для аудио если есть
+      let audioUrl = undefined;
+      if (item.mp3_medit) {
+        audioUrl = item.mp3_medit;
+      }
+      
+      // Создаем объект практики
+      return {
+        id: `api-${item.id || item._id}`,
+        title: item.name || 'Практика без названия',
+        description: item.descr || `${item.name || 'Практика'} - ${item.type || 'практика'}`,
+        imageUrl,
+        duration: parseDuration(item.duration || '0'),
+        practiceType,
+        difficulty: mapDifficulty(item.hard || 'Простая'),
+        tags,
+        goals,
+        instructor: 'YoWellCoach',
+        videoUrl,
+        audioUrl,
+        originalData: item
+      };
+    });
+};
+
+// Функция для загрузки практик
+export const loadPractices = async (): Promise<Practice[]> => {
+  try {
+    const apiPractices = await fetchPractices();
+    practices = convertApiToPractice(apiPractices);
+    
+    // Если с API ничего не вернулось, используем моковые данные
+    if (practices.length === 0) {
+      console.log('API вернул 0 практик, используем моковые данные');
+      practices = mockPractices;
+    }
+    
+    return practices;
+  } catch (error) {
+    console.error('Ошибка при загрузке практик:', error);
+    practices = mockPractices;
+    return practices;
+  }
+};
+
+// Функция для получения уже загруженных практик
+export const getPractices = (): Practice[] => {
+  return practices.length > 0 ? practices : mockPractices;
+};
 
 // Функция для фильтрации практик по параметрам
 export const filterPractices = (
@@ -235,7 +187,9 @@ export const filterPractices = (
     goals?: string[];
   }
 ) => {
-  return practices.filter(practice => {
+  const allPractices = getPractices();
+  
+  return allPractices.filter(practice => {
     // Проверка типа практики
     if (filters.practiceType && practice.practiceType !== filters.practiceType) {
       return false;
