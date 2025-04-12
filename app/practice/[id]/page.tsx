@@ -1,19 +1,18 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Practice, practices } from '../../../data/practices';
+import { getPractices, Practice } from '../../../data/practices';
+import { getPracticeImageUrl } from '../../../utils/imageUtils';
 import QuizButton from '../../../components/QuizButton';
 
-export default function PracticeDetailPage({ params }: { params: { id: string } }) {
+export default function PracticePage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const [tg, setTg] = useState<any>(null);
   const [practice, setPractice] = useState<Practice | null>(null);
+  const [tg, setTg] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Имитация простого плеера
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     // Инициализация Telegram Mini App
@@ -28,249 +27,422 @@ export default function PracticeDetailPage({ params }: { params: { id: string } 
       // Показываем кнопку "Назад" в хедере
       telegram.BackButton.show();
       telegram.BackButton.onClick(() => {
-        router.push('/quiz/results');
+        router.back();
       });
     }
 
     // Загрузка данных о практике
-    const foundPractice = practices.find(p => p.id === params.id);
-    
-    // Имитация задержки загрузки
-    setTimeout(() => {
+    const loadPractice = async () => {
+      try {
+        // Пытаемся получить практику из CloudStorage
+        if (telegram?.CloudStorage) {
+          telegram.CloudStorage.getItem('selectedPractice', (error: Error | null, value: string | null) => {
+            if (value) {
+              try {
+                const storedPractice = JSON.parse(value);
+                if (storedPractice && storedPractice.id === params.id) {
+                  setPractice(storedPractice);
+                  setIsLoading(false);
+                  return;
+                }
+              } catch (e) {
+                console.error('Ошибка парсинга данных практики:', e);
+              }
+            }
+            
+            // Если не удалось получить из CloudStorage, загружаем из списка практик
+            loadPracticeFromList();
+          });
+        } else {
+          // Если CloudStorage недоступен, загружаем из списка практик
+          loadPracticeFromList();
+        }
+      } catch (error) {
+        console.error('Ошибка при загрузке практики:', error);
+        loadPracticeFromList();
+      }
+    };
+
+    // Загрузка практики из списка всех практик
+    const loadPracticeFromList = () => {
+      const practices = getPractices();
+      const foundPractice = practices.find(p => p.id === params.id);
       setPractice(foundPractice || null);
       setIsLoading(false);
-    }, 800);
-  }, [router, params.id]);
+    };
 
-  const handlePlay = () => {
-    setIsPlaying(!isPlaying);
+    loadPractice();
+  }, [params.id, router]);
+
+  // Обработчик ошибки загрузки изображения
+  const handleImageError = () => {
+    setImageError(true);
   };
 
-  const handleBack = () => {
-    router.push('/quiz/results');
+  // Начать практику
+  const handleStartPractice = () => {
+    if (!practice) return;
+    
+    // TODO: Здесь будет логика старта практики
+    alert(`Практика ${practice.title} начата!`);
+    
+    // Закрыть Telegram Mini App при необходимости
+    if (tg && tg.close) {
+      // tg.close();
+    }
   };
 
-  // Отображение загрузки
   if (isLoading) {
     return (
-      <div style={{
-        display: 'flex',
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
         justifyContent: 'center',
-        alignItems: 'center',
         minHeight: '100vh',
-        backgroundColor: '#FFFFFF'
+        padding: '16px'
       }}>
-        <div 
-          style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '50%',
-            border: '3px solid #F1F1F1',
-            borderTopColor: '#337FFF',
-            animation: 'spin 1s linear infinite',
-          }}
-        />
+        <div style={{ 
+          width: '48px', 
+          height: '48px', 
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #337FFF', 
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          marginBottom: '16px'
+        }} />
         <style jsx>{`
           @keyframes spin {
-            to {
-              transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
           }
         `}</style>
+        <p style={{ 
+          fontFamily: 'Montserrat', 
+          fontSize: '16px', 
+          textAlign: 'center',
+          color: '#666'
+        }}>
+          Загружаем практику...
+        </p>
       </div>
     );
   }
 
-  // Если практика не найдена
   if (!practice) {
     return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
         justifyContent: 'center',
-        alignItems: 'center',
         minHeight: '100vh',
-        padding: '24px',
-        backgroundColor: '#FFFFFF',
-        textAlign: 'center'
+        padding: '16px'
       }}>
-        <h1 style={{
-          fontFamily: 'Montserrat',
-          fontWeight: 600,
-          fontSize: '24px',
-          color: '#242424',
-          marginBottom: '16px'
+        <div style={{ 
+          background: '#F5F5F5',
+          borderRadius: '50%',
+          width: '64px',
+          height: '64px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '16px',
+          fontSize: '32px'
+        }}>
+          😢
+        </div>
+        <h2 style={{ 
+          fontFamily: 'Montserrat', 
+          fontSize: '20px', 
+          textAlign: 'center',
+          margin: '0 0 8px 0'
         }}>
           Практика не найдена
-        </h1>
-        <p style={{
-          fontFamily: 'Inter',
-          fontSize: '16px',
-          color: '#8C8C8C',
+        </h2>
+        <p style={{ 
+          fontFamily: 'Inter', 
+          fontSize: '16px', 
+          textAlign: 'center',
+          color: '#666',
           marginBottom: '24px'
         }}>
-          Запрошенная практика не существует или была удалена
+          Возможно, она была удалена или перемещена
         </p>
         <QuizButton 
           text="Вернуться к списку" 
-          onClick={handleBack} 
-          primary={true}
+          onClick={() => router.push('/quiz/results')}
         />
       </div>
     );
   }
 
+  // Определение фактического URL изображения с использованием утилиты
+  const imageUrl = imageError 
+    ? getPracticeImageUrl(practice.id, practice.vimeoId, true)
+    : practice.imageUrl;
+
+  // Получение типа практики для отображения
+  const getPracticeTypeText = () => {
+    switch (practice.practiceType) {
+      case 'body':
+        return practice.bodyType === 'yoga' ? 'Йога' : 'Осанка';
+      case 'meditation':
+        return 'Медитация';
+      case 'breathing':
+        return 'Дыхательная практика';
+      default:
+        return 'Практика';
+    }
+  };
+
+  // Форматирование длительности
+  const formatDuration = (minutes: number) => {
+    if (minutes < 60) {
+      return `${minutes} минут`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return remainingMinutes > 0 
+      ? `${hours} ч ${remainingMinutes} мин` 
+      : `${hours} часов`;
+  };
+
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: '100vh',
-      maxWidth: '375px',
-      margin: '0 auto',
-      backgroundColor: '#FFFFFF'
-    }}>
+    <div style={{ minHeight: '100vh', background: '#FFFFFF' }}>
       {/* Изображение практики */}
       <div style={{ position: 'relative', width: '100%', height: '240px' }}>
-        <Image 
-          src={practice.imageUrl} 
-          alt={practice.title} 
+        <Image
+          src={imageUrl}
+          alt={practice.title}
           fill
-          sizes="(max-width: 768px) 100vw, 400px"
           style={{ objectFit: 'cover' }}
+          onError={handleImageError}
+          priority
         />
+        
+        {/* Затемнение для лучшей читаемости текста */}
+        <div style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: '120px',
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%)',
+        }} />
+        
+        {/* Название практики */}
+        <div style={{
+          position: 'absolute',
+          bottom: '16px',
+          left: '16px',
+          right: '16px',
+        }}>
+          <h1 style={{ 
+            color: 'white', 
+            margin: 0, 
+            fontSize: '24px', 
+            fontWeight: 600,
+            textShadow: '0px 1px 2px rgba(0,0,0,0.3)'
+          }}>
+            {practice.title}
+          </h1>
+        </div>
       </div>
-
+      
       {/* Информация о практике */}
-      <div style={{ padding: '24px 16px', flex: 1 }}>
-        <h1 style={{
-          fontFamily: 'Montserrat',
-          fontWeight: 600,
-          fontSize: '24px',
-          color: '#242424',
-          margin: 0,
-          marginBottom: '16px'
-        }}>
-          {practice.title}
-        </h1>
-
+      <div style={{ padding: '16px' }}>
+        {/* Детали практики */}
         <div style={{ 
-          display: 'flex',
-          gap: '12px',
-          marginBottom: '16px'
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          gap: '8px',
+          marginBottom: '24px'
         }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+          {/* Тип практики */}
+          <div style={{
             background: '#F5F5F5',
             borderRadius: '100px',
-            padding: '6px 12px'
+            padding: '6px 12px',
+            fontSize: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px'
           }}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '6px' }}>
-              <path d="M8.00004 4.00008V8.00008L10.6667 9.33342M14.6667 8.00008C14.6667 11.6819 11.6819 14.6667 8.00004 14.6667C4.31814 14.6667 1.33337 11.6819 1.33337 8.00008C1.33337 4.31818 4.31814 1.33341 8.00004 1.33341C11.6819 1.33341 14.6667 4.31818 14.6667 8.00008Z" stroke="#8C8C8C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span style={{ 
-              fontFamily: 'Inter', 
-              fontWeight: 500, 
-              fontSize: '14px',
-              color: '#242424'
-            }}>
-              {practice.duration} мин
+            <span>
+              {practice.practiceType === 'body' ? '🧘‍♀️' : practice.practiceType === 'meditation' ? '🧠' : '💨'}
             </span>
+            <span>{getPracticeTypeText()}</span>
           </div>
-
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+          
+          {/* Длительность */}
+          <div style={{
             background: '#F5F5F5',
             borderRadius: '100px',
-            padding: '6px 12px'
+            padding: '6px 12px',
+            fontSize: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px'
           }}>
-            <span style={{ 
-              fontFamily: 'Inter', 
-              fontWeight: 500, 
-              fontSize: '14px',
-              color: '#242424'
-            }}>
-              {practice.difficulty === 'beginner' && 'Начинающий'}
-              {practice.difficulty === 'intermediate' && 'Средний'}
-              {practice.difficulty === 'advanced' && 'Продвинутый'}
-            </span>
+            <span>⏱️</span>
+            <span>{formatDuration(practice.duration)}</span>
+          </div>
+          
+          {/* Сложность */}
+          <div style={{
+            background: '#F5F5F5',
+            borderRadius: '100px',
+            padding: '6px 12px',
+            fontSize: '14px',
+          }}>
+            {practice.difficulty === 'beginner' ? '👶 Начальный' : 
+             practice.difficulty === 'intermediate' ? '👌 Средний' :
+             '💪 Продвинутый'}
           </div>
         </div>
-
-        <p style={{ 
-          fontFamily: 'Inter', 
-          fontWeight: 400, 
-          fontSize: '16px',
-          color: '#8C8C8C',
-          marginBottom: '24px',
-          lineHeight: '1.5'
-        }}>
-          {practice.description}
-        </p>
-
+        
+        {/* Описание */}
         <div style={{ marginBottom: '24px' }}>
-          <h2 style={{
-            fontFamily: 'Montserrat',
-            fontWeight: 600,
-            fontSize: '18px',
-            color: '#242424',
-            marginBottom: '12px'
+          <h2 style={{ 
+            fontSize: '18px', 
+            fontWeight: 600, 
+            margin: '0 0 8px 0'
           }}>
-            Цели практики
+            Описание
           </h2>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {practice.goals.map((goal, index) => (
-              <span 
-                key={index}
-                style={{ 
-                  background: '#F5F5F5',
-                  borderRadius: '100px',
-                  padding: '6px 12px',
-                  fontFamily: 'Inter', 
-                  fontWeight: 400, 
-                  fontSize: '14px',
-                  color: '#242424'
-                }}
-              >
-                {goal}
-              </span>
-            ))}
-          </div>
+          <p style={{ 
+            margin: 0, 
+            fontSize: '16px', 
+            lineHeight: 1.5,
+            color: '#444444'
+          }}>
+            {practice.description}
+          </p>
         </div>
-
+        
+        {/* Инструктор */}
         <div style={{ marginBottom: '24px' }}>
-          <h2 style={{
-            fontFamily: 'Montserrat',
-            fontWeight: 600,
-            fontSize: '18px',
-            color: '#242424',
-            marginBottom: '8px'
+          <h2 style={{ 
+            fontSize: '18px', 
+            fontWeight: 600, 
+            margin: '0 0 8px 0'
           }}>
             Инструктор
           </h2>
-          <p style={{ 
-            fontFamily: 'Inter', 
-            fontWeight: 500, 
-            fontSize: '16px',
-            color: '#242424',
-            margin: 0
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px'
           }}>
-            {practice.instructor}
-          </p>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: '#F5F5F5',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              fontSize: '24px'
+            }}>
+              👨‍🏫
+            </div>
+            <div>
+              <p style={{ 
+                margin: '0 0 4px 0', 
+                fontWeight: 500, 
+                fontSize: '16px'
+              }}>
+                {practice.instructor}
+              </p>
+              <p style={{ 
+                margin: 0, 
+                fontSize: '14px', 
+                color: '#666666'
+              }}>
+                Сертифицированный инструктор
+              </p>
+            </div>
+          </div>
         </div>
+        
+        {/* Цели практики */}
+        {practice.goals && practice.goals.length > 0 && (
+          <div style={{ marginBottom: '24px' }}>
+            <h2 style={{ 
+              fontSize: '18px', 
+              fontWeight: 600, 
+              margin: '0 0 8px 0'
+            }}>
+              Цели практики
+            </h2>
+            <div style={{ 
+              display: 'flex', 
+              flexWrap: 'wrap', 
+              gap: '8px'
+            }}>
+              {practice.goals.map((goal, index) => (
+                <div 
+                  key={index}
+                  style={{
+                    background: '#F5F5F5',
+                    borderRadius: '100px',
+                    padding: '6px 12px',
+                    fontSize: '14px',
+                  }}
+                >
+                  {goal}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Теги */}
+        {practice.tags && practice.tags.length > 0 && (
+          <div style={{ marginBottom: '32px' }}>
+            <h2 style={{ 
+              fontSize: '18px', 
+              fontWeight: 600, 
+              margin: '0 0 8px 0'
+            }}>
+              Теги
+            </h2>
+            <div style={{ 
+              display: 'flex', 
+              flexWrap: 'wrap', 
+              gap: '8px'
+            }}>
+              {practice.tags.map((tag, index) => (
+                <div 
+                  key={index}
+                  style={{
+                    background: '#F5F5F5',
+                    borderRadius: '100px',
+                    padding: '6px 12px',
+                    fontSize: '14px',
+                    color: '#666666'
+                  }}
+                >
+                  #{tag}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Нижняя панель с кнопкой плеера */}
-      <div style={{
+      
+      {/* Кнопка начать практику */}
+      <div style={{ 
+        position: 'sticky', 
+        bottom: 0, 
         padding: '16px',
-        borderTop: '1px solid #F5F5F5',
-        backgroundColor: '#FFFFFF',
+        background: 'white',
+        borderTop: '1px solid #F1F1F1'
       }}>
         <QuizButton 
-          text={isPlaying ? "Пауза" : "Начать практику"} 
-          onClick={handlePlay} 
-          primary={true} 
+          text="Начать практику" 
+          onClick={handleStartPractice}
         />
       </div>
     </div>

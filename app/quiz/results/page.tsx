@@ -4,14 +4,16 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import PracticeCard from '../../../components/PracticeCard';
 import QuizButton from '../../../components/QuizButton';
-import AnimatedBackground from '../../../components/AnimatedBackground';
 import { Practice, filterPractices } from '../../../data/practices';
+import { useSearchParams } from 'next/navigation';
 
 export default function ResultsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [tg, setTg] = useState<any>(null);
   const [filteredPractices, setFilteredPractices] = useState<Practice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedPractice, setSelectedPractice] = useState<Practice | null>(null);
 
   useEffect(() => {
     // Инициализация Telegram Mini App
@@ -26,137 +28,233 @@ export default function ResultsPage() {
       // Показываем кнопку "Назад" в хедере
       telegram.BackButton.show();
       telegram.BackButton.onClick(() => {
-        router.push('/quiz/body');
+        router.back();
       });
     }
 
-    // Имитация загрузки данных
-    setTimeout(() => {
-      // Фильтруем практики на основе параметров
-      const filtered = filterPractices({
-        practiceType: 'body',
-        duration: [15, 30],
-        goals: ['расслабление', 'гибкость']
-      });
-      setFilteredPractices(filtered);
-      setIsLoading(false);
-    }, 1000);
-  }, [router]);
+    // Получаем параметры из URL
+    const practiceType = searchParams.get('type') as 'body' | 'meditation' | 'breathing' | undefined;
+    const bodyType = searchParams.get('bodyType') as 'yoga' | 'posture' | undefined;
+    const difficulty = searchParams.get('difficulty') as 'beginner' | 'intermediate' | 'advanced' | undefined;
+    const duration = searchParams.get('duration');
+    const goal = searchParams.get('goal');
+    const meditationType = searchParams.get('meditationType') as 'relaxation' | 'concentration' | 'sleep' | 'emotions' | undefined;
+    const breathingIntensity = searchParams.get('breathingIntensity') as 'mild' | 'medium' | 'intense' | undefined;
 
+    // Формируем объект с фильтрами
+    const filters: any = {};
+    
+    if (practiceType) filters.practiceType = practiceType;
+    if (bodyType) filters.bodyType = bodyType;
+    if (difficulty) filters.difficulty = difficulty;
+    if (meditationType) filters.meditationType = meditationType;
+    if (breathingIntensity) filters.breathingIntensity = breathingIntensity;
+    
+    // Обрабатываем длительность
+    if (duration) {
+      let durationRange: [number, number] = [0, 0];
+      
+      if (duration === 'short') {
+        durationRange = [0, 15];
+      } else if (duration === 'medium') {
+        durationRange = [15, 30];
+      } else if (duration === 'long') {
+        durationRange = [30, 120];
+      }
+      
+      if (durationRange[0] > 0 || durationRange[1] > 0) {
+        filters.duration = durationRange;
+      }
+    }
+    
+    // Обрабатываем цель практики
+    if (goal) {
+      filters.goals = [goal];
+    }
+    
+    console.log('Применяемые фильтры:', filters);
+    
+    // Фильтруем практики
+    const practices = filterPractices(filters);
+    setFilteredPractices(practices);
+    setIsLoading(false);
+  }, [searchParams, router]);
+
+  // Обработчик выбора практики
   const handleSelectPractice = (practice: Practice) => {
-    // В реальном приложении здесь был бы переход к практике
-    router.push(`/practice/${practice.id}`);
+    setSelectedPractice(practice);
   };
 
-  const handleBack = () => {
-    router.push('/quiz/body');
+  // Обработчик старта практики
+  const handleStartPractice = () => {
+    if (selectedPractice) {
+      if (tg) {
+        // Сохраняем выбранную практику в данных Telegram
+        tg.CloudStorage.setItem('selectedPractice', JSON.stringify(selectedPractice), function(error: Error | null, stored: boolean) {
+          if (stored) {
+            console.log('Практика сохранена в Telegram CloudStorage');
+          }
+          if (error) {
+            console.error('Ошибка при сохранении практики:', error);
+          }
+          
+          // Переходим на страницу практики
+          router.push(`/practice/${selectedPractice.id}`);
+        });
+      } else {
+        // Если Telegram API не доступен, просто переходим на страницу практики
+        router.push(`/practice/${selectedPractice.id}`);
+      }
+    }
   };
+
+  // Вывод сообщения о том, что загружаем практики
+  if (isLoading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        minHeight: '100vh',
+        padding: '16px'
+      }}>
+        <div style={{ 
+          width: '48px', 
+          height: '48px', 
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #337FFF', 
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          marginBottom: '16px'
+        }} />
+        <style jsx>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+        <p style={{ 
+          fontFamily: 'Montserrat', 
+          fontSize: '16px', 
+          textAlign: 'center',
+          color: '#666'
+        }}>
+          Подбираем подходящие практики...
+        </p>
+      </div>
+    );
+  }
+
+  // Вывод сообщения, если не нашли подходящих практик
+  if (filteredPractices.length === 0) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        minHeight: '100vh',
+        padding: '16px'
+      }}>
+        <div style={{ 
+          background: '#F5F5F5',
+          borderRadius: '50%',
+          width: '64px',
+          height: '64px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '16px',
+          fontSize: '32px'
+        }}>
+          🔍
+        </div>
+        <h2 style={{ 
+          fontFamily: 'Montserrat', 
+          fontSize: '20px', 
+          textAlign: 'center',
+          margin: '0 0 8px 0'
+        }}>
+          Практики не найдены
+        </h2>
+        <p style={{ 
+          fontFamily: 'Inter', 
+          fontSize: '16px', 
+          textAlign: 'center',
+          color: '#666',
+          marginBottom: '24px'
+        }}>
+          Попробуйте изменить параметры поиска
+        </p>
+        <QuizButton 
+          text="Начать заново" 
+          onClick={() => router.push('/quiz')}
+        />
+      </div>
+    );
+  }
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: '100vh',
-      maxWidth: '375px',
+    <div style={{ 
+      padding: '16px',
+      maxWidth: '800px',
       margin: '0 auto',
-      backgroundColor: '#FFFFFF',
-      position: 'relative'
+      minHeight: '100vh'
     }}>
-      {/* Анимированный фон с кругами */}
-      <AnimatedBackground opacity={0.15} showHumanIcon={false} gradientColors="#73C570, #05DD49" />
-
-      {/* Заголовок */}
-      <div style={{
-        padding: '24px 16px 16px 16px',
-        zIndex: 2,
-        position: 'relative'
+      <h1 style={{ 
+        fontFamily: 'Montserrat', 
+        fontSize: '24px', 
+        marginBottom: '8px',
+        marginTop: '0'
       }}>
-        <h1 style={{
-          fontFamily: 'Montserrat',
-          fontWeight: 600,
-          fontSize: '24px',
-          color: '#242424',
-          margin: 0,
-          marginBottom: '8px'
-        }}>
-          Ваши практики
-        </h1>
-      </div>
-
-      {/* Список практик */}
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        padding: '0 16px 24px 16px',
-        zIndex: 2,
-        position: 'relative'
+        Подходящие практики
+      </h1>
+      
+      <p style={{ 
+        fontFamily: 'Inter', 
+        fontSize: '16px', 
+        color: '#666',
+        marginBottom: '24px'
       }}>
-        {isLoading ? (
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '200px'
-          }}>
-            <div 
-              style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                border: '3px solid #F1F1F1',
-                borderTopColor: '#337FFF',
-                animation: 'spin 1s linear infinite',
-              }}
+        Выберите практику, которая вам больше нравится
+      </p>
+      
+      {/* Список найденных практик */}
+      <div>
+        {filteredPractices.map(practice => (
+          <div 
+            key={practice.id}
+            onClick={() => handleSelectPractice(practice)}
+            style={{ 
+              marginBottom: '16px',
+              border: selectedPractice?.id === practice.id ? '2px solid #337FFF' : 'none',
+              borderRadius: '24px',
+              overflow: 'hidden',
+              transition: 'transform 0.2s ease-in-out'
+            }}
+          >
+            <PracticeCard 
+              practice={practice} 
+              onClick={handleSelectPractice}
             />
-            <style jsx>{`
-              @keyframes spin {
-                to {
-                  transform: rotate(360deg);
-                }
-              }
-            `}</style>
           </div>
-        ) : (
-          <>
-            {filteredPractices.length > 0 ? (
-              filteredPractices.map((practice) => (
-                <PracticeCard
-                  key={practice.id}
-                  practice={practice}
-                  onClick={handleSelectPractice}
-                />
-              ))
-            ) : (
-              <div style={{
-                textAlign: 'center',
-                padding: '32px 0'
-              }}>
-                <p style={{
-                  fontFamily: 'Inter',
-                  fontSize: '16px',
-                  color: '#8C8C8C'
-                }}>
-                  Пока нет подходящих практик
-                </p>
-              </div>
-            )}
-          </>
-        )}
+        ))}
       </div>
-
-      {/* Нижняя панель с кнопками */}
-      <div style={{
-        padding: '16px',
-        borderTop: '1px solid #F5F5F5',
-        zIndex: 3,
-        position: 'relative',
-        backgroundColor: 'rgba(255, 255, 255, 0.7)',
-        backdropFilter: 'blur(5px)'
+      
+      {/* Кнопка выбора практики */}
+      <div style={{ 
+        position: 'sticky', 
+        bottom: '16px',
+        paddingTop: '16px',
+        background: 'linear-gradient(to top, white 70%, transparent)',
+        marginBottom: '0',
+        width: '100%'
       }}>
         <QuizButton 
-          text="Изменить параметры" 
-          onClick={handleBack} 
-          primary={false}
+          text="Начать практику" 
+          onClick={handleStartPractice} 
+          disabled={!selectedPractice}
         />
       </div>
     </div>

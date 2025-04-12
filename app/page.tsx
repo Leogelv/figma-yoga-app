@@ -27,10 +27,6 @@ export default function Home() {
   const handleChoosePractice = () => {
     router.push('/quiz');
   };
-  
-  const handleFigmaYoga = () => {
-    router.push('/figma-yoga');
-  };
 
   return (
     <main style={{ 
@@ -246,35 +242,6 @@ export default function Home() {
               <path d="M9 18L15 12L9 6" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-          
-          <button 
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              background: '#F0F7FF',
-              borderRadius: '16px',
-              padding: '16px',
-              width: '100%',
-              height: '56px',
-              border: 'none',
-              cursor: 'pointer'
-            }}
-            onClick={handleFigmaYoga}
-          >
-            <span style={{
-              fontFamily: 'Montserrat',
-              fontWeight: 600,
-              fontSize: '16px',
-              color: '#337FFF',
-              textAlign: 'left'
-            }}>
-              Figma Yoga
-            </span>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 18L15 12L9 6" stroke="#337FFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
         </div>
       </div>
 
@@ -454,8 +421,8 @@ export default function Home() {
             color: '#000000'
           }}>Профиль</span>
         </div>
-      </div>
-    </main>
+        </div>
+      </main>
   );
 }
 

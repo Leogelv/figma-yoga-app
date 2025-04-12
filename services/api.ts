@@ -49,21 +49,6 @@ export const mapPracticeType = (system: string): 'body' | 'meditation' | 'breath
   }
 };
 
-// Функция для получения изображения практики
-export const getPracticeImageUrl = (vimeoId?: string, kinescopeId?: string): string => {
-  if (vimeoId) {
-    // Изображение из Vimeo
-    const vimeoIdClean = vimeoId.split('/')[0];
-    return `https://vumbnail.com/${vimeoIdClean}.jpg`;
-  } else if (kinescopeId) {
-    // Здесь можно добавить логику для Kinescope, если будут доступны превью
-    return '/images/practices/default-practice.jpg';
-  } else {
-    // Изображение по умолчанию
-    return '/images/practices/default-practice.jpg';
-  }
-};
-
 // Функция для парсинга длительности из строки в минуты
 export const parseDuration = (duration: string): number => {
   if (!duration) return 0;

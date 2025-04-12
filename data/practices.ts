@@ -1,4 +1,5 @@
-import { fetchPractices, getPracticeImageUrl, mapDifficulty, mapPracticeType, parseDuration } from '../services/api';
+import { fetchPractices, mapDifficulty, mapPracticeType, parseDuration } from '../services/api';
+import { getPracticeImageUrl, getMockPracticeImageUrl } from '../utils/imageUtils';
 
 export interface Practice {
   id: string;
@@ -17,6 +18,7 @@ export interface Practice {
   audioUrl?: string; // для медитаций и дыхательных практик
   videoUrl?: string; // для телесных практик
   originalData?: any; // Оригинальные данные из API
+  vimeoId?: string; // ID видео в Vimeo
 }
 
 // Демо-данные для практик, используются если API недоступен
@@ -26,7 +28,7 @@ export const mockPractices: Practice[] = [
     id: 'body-1',
     title: 'Утренняя йога для бодрости',
     description: 'Мягкая утренняя практика для пробуждения и заряда энергией на весь день',
-    imageUrl: '/images/practices/default-practice.jpg',
+    imageUrl: getMockPracticeImageUrl('body', { bodyType: 'yoga' }),
     duration: 15,
     practiceType: 'body',
     difficulty: 'beginner',
@@ -34,14 +36,15 @@ export const mockPractices: Practice[] = [
     goals: ['энергия', 'гибкость'],
     bodyType: 'yoga',
     instructor: 'Даниил Чернолуцкий',
-    videoUrl: 'https://player.vimeo.com/video/123456789'
+    videoUrl: 'https://player.vimeo.com/video/123456789',
+    vimeoId: '123456789'
   },
   // Сокращаем до 3 примеров для упрощения
   {
     id: 'meditation-1',
     title: 'Медитация для расслабления',
     description: 'Мягкая медитация для снятия стресса и глубокого расслабления',
-    imageUrl: '/images/practices/default-practice.jpg',
+    imageUrl: getMockPracticeImageUrl('meditation', { meditationType: 'relaxation' }),
     duration: 10,
     practiceType: 'meditation',
     difficulty: 'beginner',
@@ -55,7 +58,7 @@ export const mockPractices: Practice[] = [
     id: 'breathing-1',
     title: 'Утренняя дыхательная практика',
     description: 'Энергетическое дыхание для бодрости и заряда энергией',
-    imageUrl: '/images/practices/default-practice.jpg',
+    imageUrl: getMockPracticeImageUrl('breathing'),
     duration: 5,
     practiceType: 'breathing',
     difficulty: 'beginner',
@@ -114,13 +117,16 @@ export const convertApiToPractice = (apiData: any[]): Practice[] => {
         }
       }
       
+      // Получаем ID из vimeo или kinescope
+      const vimeoId = item.vimeo ? item.vimeo.split('/')[0] : undefined;
+      
       // Получаем URL для изображения
-      const imageUrl = getPracticeImageUrl(item.vimeo, item.kinescope);
+      const imageUrl = getPracticeImageUrl(`api-${item.id || item._id}`, vimeoId);
       
       // Формируем URL для видео если есть
       let videoUrl = undefined;
       if (item.vimeo) {
-        videoUrl = `https://player.vimeo.com/video/${item.vimeo}`;
+        videoUrl = `https://player.vimeo.com/video/${vimeoId}`;
       } else if (item.kinescope) {
         videoUrl = item.kinescope;
       }
@@ -145,6 +151,7 @@ export const convertApiToPractice = (apiData: any[]): Practice[] => {
         instructor: 'YoWellCoach',
         videoUrl,
         audioUrl,
+        vimeoId,
         originalData: item
       };
     });
