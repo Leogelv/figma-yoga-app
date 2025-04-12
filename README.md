@@ -20,6 +20,25 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Структура проекта
+
+### Изображения для практик
+
+Изображения для практик хранятся в директории `public/images/practices/`. Имена файлов соответствуют полю `imageUrl` в объектах практик из файла `data/practices.ts`.
+
+Для создания заглушек изображений можно использовать скрипт:
+
+```bash
+node scripts/placeholder-images.js
+```
+
+### Типы практик
+
+В приложении представлены следующие типы практик:
+- Телесные практики (йога, осанка)
+- Медитативные практики (разные типы медитаций)
+- Дыхательные практики (разной интенсивности)
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

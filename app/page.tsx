@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import AnimatedBackground from '../components/AnimatedBackground';
+import AnimatedCircles from '../components/AnimatedCircles';
 
 export default function Home() {
   const router = useRouter();
@@ -45,7 +45,6 @@ export default function Home() {
         justifyContent: 'space-between', 
         alignItems: 'center',
         padding: '12px 16px',
-        borderBottom: '1px solid #F5F5F5',
         zIndex: 5,
         position: 'relative'
       }}>
@@ -81,52 +80,122 @@ export default function Home() {
 
       {/* Content */}
       <div style={{ 
-        height: 'calc(100vh - 64px - 76px)', // 100vh - header - tabbar
+        height: 'calc(100vh - 60px - 76px)', // 100vh - header - tabbar
         overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         position: 'relative'
       }}>
-        {/* Анимированные круги и фон */}
-        <AnimatedBackground gradientColors="#EE5A32, #FF8B6B" showHumanIcon={true} />
-        
-        {/* Текстовое сообщение */}
+        {/* Анимированные круги и силуэт */}
+        <AnimatedCircles gradientColors="#EE5A32, #FF8B6B" showHumanIcon={true} />
+
+        {/* Прогресс блок */}
         <div style={{
-          marginTop: '200px',
-          textAlign: 'center',
-          color: '#ffffff',
-          zIndex: 10,
-          padding: '0 20px'
+          marginTop: 'auto',
+          marginBottom: '0',
+          background: '#F7F7F7',
+          borderRadius: '24px 24px 0 0',
+          padding: '20px 16px',
+          width: '100%',
+          zIndex: 3,
+          position: 'relative'
         }}>
-          <h2 style={{
-            fontFamily: 'Montserrat', 
-            fontWeight: 500,
-            fontSize: '22px',
-            marginBottom: '20px',
-            textShadow: '0 0 10px rgba(255, 143, 64, 0.3)'
+          <h3 style={{
+            fontFamily: 'Montserrat',
+            fontWeight: 600,
+            fontSize: '18px',
+            color: '#242424',
+            margin: 0,
+            marginBottom: '8px'
           }}>
-            Персональная Yoga практика
-          </h2>
+            Твой прогресс
+          </h3>
+          <p style={{
+            fontFamily: 'Inter',
+            fontWeight: 400,
+            fontSize: '14px',
+            color: '#242424',
+            margin: 0,
+            marginBottom: '16px'
+          }}>
+            Всего часов практик: 20
+          </p>
+          
+          {/* Дни недели */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginBottom: '8px'
+          }}>
+            {['Пн', 'Вт', 'Ср', 'Чт', 'Пт'].map((day, index) => (
+              <div key={index} style={{
+                width: '20%',
+                textAlign: 'center'
+              }}>
+                <span style={{
+                  fontFamily: 'Montserrat',
+                  fontWeight: 500,
+                  fontSize: '14px',
+                  color: 'rgba(0, 0, 0, 0.5)'
+                }}>{day}</span>
+              </div>
+            ))}
+          </div>
+          
+          {/* Кружочки прогресса */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: '8px',
+            marginBottom: '16px'
+          }}>
+            {[1, 2, 3, 4, 5].map((day, index) => (
+              <div key={index} style={{
+                flex: 1,
+                height: '40px',
+                background: index < 2 ? '#323232' : '#D9D9D9',
+                borderRadius: '20px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}>
+                {index < 2 && (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13.3334 4L6.00002 11.3333L2.66669 8" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          <p style={{
+            fontFamily: 'Inter',
+            fontWeight: 400,
+            fontSize: '14px',
+            color: 'rgba(36, 36, 36, 0.7)',
+            margin: 0
+          }}>
+            При выполнении практик ежедневно, начислим 100 баллов
+          </p>
         </div>
 
         {/* Buttons */}
-        <div style={{ padding: '16px', marginTop: 'auto', zIndex: 10, position: 'relative' }}>
+        <div style={{ padding: '16px', marginTop: '16px', zIndex: 10, position: 'relative' }}>
           <button 
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              background: 'rgba(255, 255, 255, 0.8)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '24px',
+              background: '#F7F7F7',
+              borderRadius: '16px',
               padding: '16px',
               width: '100%',
-              height: '64px',
+              height: '56px',
               border: 'none',
               marginBottom: '12px',
-              boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
+              cursor: 'pointer'
             }}
             onClick={handleQuickPractice}
           >
@@ -146,15 +215,14 @@ export default function Home() {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              background: 'rgba(255, 255, 255, 0.8)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '24px',
+              background: '#F7F7F7',
+              borderRadius: '16px',
               padding: '16px',
               width: '100%',
-              height: '64px',
+              height: '56px',
               border: 'none',
               marginBottom: '16px',
-              boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
+              cursor: 'pointer'
             }}
             onClick={handleChoosePractice}
           >
@@ -177,12 +245,11 @@ export default function Home() {
         bottom: 0, 
         width: '100%',
         maxWidth: '375px',
-        borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+        borderTop: '1px solid #F5F5F5',
         display: 'flex',
         justifyContent: 'space-between',
         padding: '8px 0',
-        background: 'rgba(255, 255, 255, 0.8)',
-        backdropFilter: 'blur(10px)',
+        background: '#FFFFFF',
         zIndex: 10
       }}>
         <div style={{ 

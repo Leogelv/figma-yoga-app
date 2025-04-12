@@ -1,121 +1,149 @@
-import React, { ReactNode, useEffect } from 'react';
+"use client";
+
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import QuizButton from './QuizButton';
-import AnimatedBackground from './AnimatedBackground';
+import AnimatedCircles from './AnimatedCircles';
 
 interface QuizLayoutProps {
-  children: ReactNode;
-  title: string;
-  showBackButton?: boolean;
+  children: React.ReactNode;
+  questionText: string;
+  onNext?: (selectedOption?: string) => void;
+  backUrl?: string;
   showContinueButton?: boolean;
-  onBackClick?: () => void;
-  onContinueClick?: () => void;
-  continueDisabled?: boolean;
+  showBackButton?: boolean;
   autoAdvance?: boolean;
-  selectedOption?: string | null;
+  selectedOption?: string;
+  onOptionSelect?: (option: string) => void;
 }
 
 export default function QuizLayout({
   children,
-  title,
-  showBackButton = true,
+  questionText,
+  onNext,
+  backUrl,
   showContinueButton = true,
-  onBackClick,
-  onContinueClick,
-  continueDisabled = false,
-  autoAdvance = false,
-  selectedOption = null,
+  showBackButton = true,
+  autoAdvance = true,
+  selectedOption = '',
+  onOptionSelect,
 }: QuizLayoutProps) {
   const router = useRouter();
-
-  // Если выбран вариант и включен автоматический переход, запускаем таймер для перехода
+  const [tg, setTg] = useState<any>(null);
+  
   useEffect(() => {
-    if (autoAdvance && selectedOption && onContinueClick) {
-      const timer = setTimeout(() => {
-        onContinueClick();
-      }, 400); // Задержка для анимации
+    // Инициализация Telegram Mini App
+    const telegram = window.Telegram?.WebApp;
+    if (telegram) {
+      telegram.ready();
+      setTg(telegram);
       
-      return () => clearTimeout(timer);
+      // Настраиваем цвет верхней панели
+      telegram.setHeaderColor('#FFFFFF');
+      
+      // Показываем кнопку "Назад" в шапке Telegram
+      telegram.BackButton.show();
+      
+      // При нажатии на кнопку "Назад" в шапке
+      telegram.BackButton.onClick(() => {
+        handleBack();
+      });
     }
-  }, [autoAdvance, selectedOption, onContinueClick]);
+    
+    return () => {
+      // Скрываем кнопку при размонтировании компонента
+      if (tg) {
+        tg.BackButton.hide();
+      }
+    };
+  }, []);
 
-  // Обработчик нажатия кнопки "Назад" в интерфейсе
-  const handleBackClick = () => {
-    if (onBackClick) {
-      onBackClick();
+  const handleBack = useCallback(() => {
+    if (backUrl) {
+      router.push(backUrl);
     } else {
       router.back();
     }
-  };
+  }, [backUrl, router]);
+  
+  const handleNext = useCallback(() => {
+    if (onNext) {
+      onNext(selectedOption);
+    }
+  }, [onNext, selectedOption]);
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100vh',
-      maxWidth: '375px',
-      margin: '0 auto',
-      backgroundColor: '#FFFFFF',
-      position: 'relative'
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      minHeight: '100vh',
+      background: '#FFFFFF',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
-      {/* Анимированный фон с кругами */}
-      <AnimatedBackground opacity={0.2} showHumanIcon={false} />
+      {/* Анимированные круги */}
+      <AnimatedCircles gradientColors="#4880FF, #76A6FF" showHumanIcon={false} />
       
-      {/* Заголовок */}
-      <div style={{
-        padding: '24px 16px 16px 16px',
-        zIndex: 2,
-        position: 'relative'
+      <div style={{ 
+        padding: '16px', 
+        display: 'flex', 
+        flexDirection: 'column',
+        flex: 1,
+        position: 'relative',
+        zIndex: 5
       }}>
-        <h1 style={{
+        {/* Кнопка "Назад" */}
+        {showBackButton && (
+          <button 
+            onClick={handleBack}
+            style={{
+              background: 'none',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '8px 0',
+              cursor: 'pointer',
+              marginBottom: '16px'
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 12H5" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 19L5 12L12 5" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span style={{ 
+              marginLeft: '8px',
+              fontFamily: 'Inter',
+              fontWeight: 500,
+              fontSize: '16px'
+            }}>Назад</span>
+          </button>
+        )}
+        
+        {/* Вопрос */}
+        <h2 style={{
           fontFamily: 'Montserrat',
           fontWeight: 600,
           fontSize: '24px',
-          color: '#242424',
-          margin: 0,
-          marginBottom: '8px'
+          color: '#000000',
+          marginBottom: '24px'
         }}>
-          {title}
-        </h1>
-      </div>
-
-      {/* Основной контент */}
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        padding: '0 16px 24px 16px',
-        zIndex: 2,
-        position: 'relative'
-      }}>
-        {children}
-      </div>
-
-      {/* Кнопки навигации */}
-      <div style={{
-        padding: '16px',
-        borderTop: '1px solid #F5F5F5',
-        display: 'flex',
-        justifyContent: 'space-between',
-        gap: '12px',
-        zIndex: 3,
-        position: 'relative',
-        backgroundColor: 'rgba(255, 255, 255, 0.7)',
-        backdropFilter: 'blur(5px)'
-      }}>
-        {showBackButton && (
-          <QuizButton 
-            text="Назад" 
-            onClick={handleBackClick} 
-            primary={false}
-          />
-        )}
+          {questionText}
+        </h2>
         
-        {showContinueButton && (
-          <QuizButton 
-            text="Продолжить" 
-            onClick={onContinueClick || (() => {})} 
-            disabled={continueDisabled}
-          />
+        {/* Дочерние компоненты (опции) */}
+        <div style={{ flex: 1 }}>
+          {children}
+        </div>
+        
+        {/* Кнопка "Продолжить" */}
+        {showContinueButton && !autoAdvance && (
+          <div style={{ marginTop: '24px' }}>
+            <QuizButton
+              text="Продолжить"
+              onClick={handleNext}
+              disabled={!selectedOption}
+            />
+          </div>
         )}
       </div>
     </div>

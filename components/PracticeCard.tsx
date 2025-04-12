@@ -34,8 +34,10 @@ export default function PracticeCard({ practice, onClick }: PracticeCardProps) {
         <Image 
           src={practice.imageUrl} 
           alt={practice.title} 
-          layout="fill"
-          objectFit="cover"
+          fill
+          sizes="(max-width: 768px) 100vw, 400px"
+          style={{ objectFit: 'cover' }}
+          priority={false}
         />
       </div>
       
