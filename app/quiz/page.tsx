@@ -23,6 +23,7 @@ import IntensityStep from '@/components/practice-flow/breathing/IntensityStep';
 import BreathingDurationStep from '@/components/practice-flow/breathing/DurationStep';
 // Экран рекомендации и общие компоненты
 import RecommendationScreen from '@/components/practice-flow/RecommendationScreen';
+import TimerScreen from '@/components/practice-flow/TimerScreen';
 import QuizLayout from '@/components/quiz/QuizLayout';
 import QuizButton from '@/components/quiz/QuizButton';
 // Путь к LoadingSpinner теперь правильный
@@ -69,6 +70,8 @@ function PracticeQuizContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isQuizComplete, setIsQuizComplete] = useState(false);
+  const [activePractice, setActivePractice] = useState<ApiPractice | null>(null);
+  const [showTimer, setShowTimer] = useState(false);
 
   // Загрузка практик при монтировании
   useEffect(() => {
@@ -207,10 +210,59 @@ function PracticeQuizContent() {
 
   // Логика старта практики
   const handleStart = (practice: ApiPractice) => {
-    console.log('Start practice logic for:', practice.name);
-    // TODO: Реализовать переход к плееру или таймеру на основе practice.type, vimeo, kinescope, mp3_medit
-    alert(`Запуск практики: ${practice.name}`); // Временный алерт
+    console.log('Starting practice:', practice.name);
+    setActivePractice(practice);
+    
+    // Логика выбора: таймер или плеер
+    // Если у практики есть kinescope, то мы уже показываем его в RecommendationScreen
+    // Для других типов практик (без kinescope) показываем таймер
+    if (!practice.kinescope) {
+      setShowTimer(true);
+    } else {
+      // Для практик с kinescope действия уже выполнены в RecommendationScreen
+      // Видео уже отображается через iframe
+      console.log('Practice with video is started via Kinescope player');
+    }
   };
+
+  // Обработчики для таймера
+  const handleTimerComplete = () => {
+    console.log('Timer completed for practice:', activePractice?.name);
+    // Здесь можно добавить логику для сохранения статистики
+    setShowTimer(false);
+    setActivePractice(null);
+  };
+
+  const handleTimerCancel = () => {
+    console.log('Timer cancelled for practice:', activePractice?.name);
+    setShowTimer(false);
+    setActivePractice(null);
+  };
+  
+  // Отображаем экран таймера, если он активен
+  if (showTimer && activePractice) {
+    // Получаем длительность в минутах из строки вида "MM:SS"
+    const getDurationInMinutes = (durationStr?: string): number => {
+      if (!durationStr) return 5; // По умолчанию 5 минут
+      const parts = durationStr.split(':');
+      if (parts.length !== 2) return 5;
+      const minutes = parseInt(parts[0], 10);
+      const seconds = parseInt(parts[1], 10);
+      return isNaN(minutes) ? 5 : minutes + (seconds / 60);
+    };
+
+    return (
+      <QuizLayout title={activePractice.name} backButton onBack={handleTimerCancel}>
+        <TimerScreen
+          title={activePractice.name}
+          description={activePractice.descr || 'Следуйте инструкциям практики'}
+          duration={getDurationInMinutes(activePractice.duration)}
+          onComplete={handleTimerComplete}
+          onCancel={handleTimerCancel}
+        />
+      </QuizLayout>
+    );
+  }
   
   // Показываем загрузку, пока не загружены практики
   if (isLoading && allPractices.length === 0) {
