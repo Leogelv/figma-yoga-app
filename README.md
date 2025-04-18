@@ -24,13 +24,15 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ### Изображения для практик
 
-Изображения для практик хранятся в директории `public/images/practices/`. Имена файлов соответствуют полю `imageUrl` в объектах практик из файла `data/practices.ts`.
+Изображения для практик хранятся в директории `public/images/practices/`. Имена файлов соответствуют типам практик и используются через функцию `getPracticeImageUrl` в файле `utils/imageUtils.ts`.
 
-Для создания заглушек изображений можно использовать скрипт:
+Для загрузки изображений практик можно использовать скрипт:
 
 ```bash
-node scripts/placeholder-images.js
+./scripts/download-practice-images.sh
 ```
+
+Полная документация по работе с изображениями доступна в [документации по изображениям](./docs/images.md).
 
 ### Figma-практики
 
@@ -48,6 +50,15 @@ node scripts/placeholder-images.js
 - Телесные практики (йога, осанка)
 - Медитативные практики (разные типы медитаций)
 - Дыхательные практики (разной интенсивности)
+
+### Документация
+
+Полная документация проекта доступна в директории `/docs`. Основные разделы:
+- [Обзор проекта](./docs/README.md)
+- [Квиз для подбора практик](./docs/quiz-flow.md)
+- [API и интеграции](./docs/api.md)
+- [Figma-практики](./docs/figma-practices.md)
+- [Изображения практик](./docs/images.md)
 
 ## Learn More
 
