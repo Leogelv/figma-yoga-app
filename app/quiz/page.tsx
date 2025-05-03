@@ -71,6 +71,20 @@ function PracticeQuizContent() {
   const [isQuizComplete, setIsQuizComplete] = useState(false);
   const [showPractice, setShowPractice] = useState(false);
 
+  // Add navigation test script for development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      // Dynamically import the test script
+      import('@/scripts/test-navigation').then(({ monitorPracticeFlow }) => {
+        // Start monitoring right away
+        monitorPracticeFlow();
+        console.log('Navigation test script loaded');
+      }).catch(err => {
+        console.error('Error loading navigation test script:', err);
+      });
+    }
+  }, []);
+
   // Загрузка практик при монтировании
   useEffect(() => {
     const loadPractices = async () => {

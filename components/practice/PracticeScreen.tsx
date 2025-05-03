@@ -21,8 +21,12 @@ export default function PracticeScreen({
   onCancel,
   onAnotherPractice
 }: PracticeScreenProps) {
-  // Определяем тип практики: медитация или телесная/дыхательная
-  const isMeditation = practice['Yo.System'] === 'Yo.Meditation';
+  // Определяем тип практики
+  // ИСПРАВЛЕНО: Теперь телесные и дыхательные практики показывают видео, медитация - таймер
+  const hasVideo = practice.kinescope && (
+    practice['Yo.System']?.includes('Yo.Body') || 
+    practice['Yo.System']?.includes('Yo.Breath')
+  );
   const practiceDuration = parseDuration(practice.duration);
 
   // Состояние таймера
@@ -73,16 +77,22 @@ export default function PracticeScreen({
     return (minutes * 60 + seconds) * 1000; // в миллисекундах
   }
 
+  // Определяем системный тип практики для отображения подзаголовка
+  let practiceTypeTitle = "Практика";
+  if (practice['Yo.System']?.includes('Yo.Body')) practiceTypeTitle = "Телесная практика";
+  if (practice['Yo.System']?.includes('Yo.Breath')) practiceTypeTitle = "Дыхательная практика";
+  if (practice['Yo.System'] === 'Yo.Meditation') practiceTypeTitle = "Медитативная практика";
+
   return (
     <QuizLayout 
       title={practice.name} 
-      subtitle={isMeditation ? "Медитативная практика" : "Практика"} 
+      subtitle={practiceTypeTitle} 
       backButton
       onBack={onCancel}
     >
       <div className="flex flex-col items-center justify-center w-full h-full gap-6 pt-4">
-        {isMeditation && practice.kinescope ? (
-          // Видео-плеер для медитации
+        {hasVideo ? (
+          // Видео-плеер для телесных и дыхательных практик с Kinescope
           <div className="w-full max-w-lg mx-auto aspect-video rounded-xl overflow-hidden shadow-lg">
             <iframe
               src={`https://kinescope.io/embed/${practice.kinescope}`}
@@ -93,7 +103,7 @@ export default function PracticeScreen({
             ></iframe>
           </div>
         ) : (
-          // Круговой таймер для телесных и дыхательных практик
+          // Круговой таймер для медитаций или практик без видео
           <div className="relative mx-auto w-64 h-64 mb-2">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
               {/* Фоновый круг */}
@@ -139,7 +149,7 @@ export default function PracticeScreen({
         
         {/* Кнопки управления */}
         <div className="flex flex-col gap-3 w-full max-w-md mx-auto mt-auto">
-          {!isMeditation && (
+          {!hasVideo && (
             <Button
               onClick={handlePauseResume}
               fullWidth

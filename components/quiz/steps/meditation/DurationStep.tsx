@@ -1,10 +1,9 @@
 "use client";
 
 import { usePracticeFlow } from '@/context/PracticeFlowContext';
-import QuizLayout from '@/components/quiz/QuizLayout';
-import QuizOption from '@/components/quiz/QuizOption';
+import QuizLayout from '@/components/ui/layout/QuizLayout';
+import Option from '@/components/quiz/core/Option';
 import { Clock3, Clock, Clock9 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 export default function DurationStep() {
   const { state, setMeditationState, prevStep, nextStep } = usePracticeFlow();
@@ -21,60 +20,46 @@ export default function DurationStep() {
       backButton
       onBack={prevStep}
     >
-      <div className="flex flex-col gap-4 w-full mt-6">
-        <DurationOption
-          icon={<Clock3 size={20} />}
-          title="Короткая"
-          description="5-10 минут"
-          onClick={() => handleDurationSelect('short')}
+      <div className="flex flex-col gap-6 w-full mt-8">
+        <Option
           selected={state.meditationState.duration === 'short'}
-        />
+          onClick={() => handleDurationSelect('short')}
+        >
+          <div className="flex items-center gap-3">
+            <Clock3 size={24} className="text-primary" />
+            <div className="flex flex-col">
+              <h3 className="text-lg font-semibold">Короткая</h3>
+              <p className="text-sm text-muted-foreground">5-10 минут</p>
+            </div>
+          </div>
+        </Option>
         
-        <DurationOption
-          icon={<Clock size={20} />}
-          title="Средняя"
-          description="15-20 минут"
-          onClick={() => handleDurationSelect('medium')}
+        <Option
           selected={state.meditationState.duration === 'medium'}
-        />
+          onClick={() => handleDurationSelect('medium')}
+        >
+          <div className="flex items-center gap-3">
+            <Clock size={24} className="text-primary" />
+            <div className="flex flex-col">
+              <h3 className="text-lg font-semibold">Средняя</h3>
+              <p className="text-sm text-muted-foreground">15-20 минут</p>
+            </div>
+          </div>
+        </Option>
         
-        <DurationOption
-          icon={<Clock9 size={20} />}
-          title="Длинная"
-          description="30-45 минут"
-          onClick={() => handleDurationSelect('long')}
+        <Option
           selected={state.meditationState.duration === 'long'}
-        />
+          onClick={() => handleDurationSelect('long')}
+        >
+          <div className="flex items-center gap-3">
+            <Clock9 size={24} className="text-primary" />
+            <div className="flex flex-col">
+              <h3 className="text-lg font-semibold">Длинная</h3>
+              <p className="text-sm text-muted-foreground">30-45 минут</p>
+            </div>
+          </div>
+        </Option>
       </div>
     </QuizLayout>
-  );
-}
-
-interface DurationOptionProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  onClick: () => void;
-  selected: boolean;
-}
-
-function DurationOption({ icon, title, description, onClick, selected }: DurationOptionProps) {
-  return (
-    <QuizOption
-      onClick={onClick}
-      selected={selected}
-      className="flex items-center gap-3"
-    >
-      <div className={cn(
-        "w-10 h-10 rounded-full flex items-center justify-center",
-        selected ? "bg-primary text-white" : "bg-secondary text-foreground"
-      )}>
-        {icon}
-      </div>
-      <div className="flex flex-col">
-        <h3 className="text-base font-medium">{title}</h3>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
-    </QuizOption>
   );
 } 

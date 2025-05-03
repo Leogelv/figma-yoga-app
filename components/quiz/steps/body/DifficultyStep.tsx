@@ -1,32 +1,8 @@
 "use client";
 
 import { usePracticeFlow } from '@/context/PracticeFlowContext';
-import QuizLayout from '@/components/quiz/QuizLayout';
-import QuizOption from '@/components/quiz/QuizOption';
-
-type DifficultyOption = {
-  id: 'beginner' | 'intermediate' | 'advanced';
-  title: string;
-  description: string;
-};
-
-const difficultyOptions: DifficultyOption[] = [
-  {
-    id: 'beginner',
-    title: 'Начальный',
-    description: 'Подходит для новичков и тех, кто давно не практиковал',
-  },
-  {
-    id: 'intermediate',
-    title: 'Средний',
-    description: 'Для регулярно практикующих с базовым опытом',
-  },
-  {
-    id: 'advanced',
-    title: 'Продвинутый',
-    description: 'Для опытных практиков с хорошей физической подготовкой',
-  },
-];
+import QuizLayout from '@/components/ui/layout/QuizLayout';
+import Option from '@/components/quiz/core/Option';
 
 export default function DifficultyStep() {
   const { state, setBodyState, prevStep, nextStep } = usePracticeFlow();
@@ -39,23 +15,38 @@ export default function DifficultyStep() {
   return (
     <QuizLayout
       title="Выберите уровень сложности"
-      subtitle="Мы подберем практику с учетом вашего уровня подготовки"
+      subtitle="Какой уровень подготовки у вас сейчас?"
       backButton
       onBack={prevStep}
     >
       <div className="flex flex-col gap-6 w-full mt-8">
-        {difficultyOptions.map((option) => (
-          <QuizOption
-            key={option.id}
-            selected={state.bodyState.difficulty === option.id}
-            onClick={() => handleDifficultySelect(option.id)}
-          >
-            <div className="flex flex-col">
-              <h3 className="text-lg font-semibold text-gray-800">{option.title}</h3>
-              <p className="text-sm text-gray-500 mt-1">{option.description}</p>
-            </div>
-          </QuizOption>
-        ))}
+        <Option
+          selected={state.bodyState.difficulty === 'beginner'}
+          onClick={() => handleDifficultySelect('beginner')}
+        >
+          <div className="flex flex-col">
+            <h3 className="text-lg font-semibold">Начинающий</h3>
+            <p className="text-sm text-muted-foreground">Новичок в практике</p>
+          </div>
+        </Option>
+        <Option
+          selected={state.bodyState.difficulty === 'intermediate'}
+          onClick={() => handleDifficultySelect('intermediate')}
+        >
+          <div className="flex flex-col">
+            <h3 className="text-lg font-semibold">Средний</h3>
+            <p className="text-sm text-muted-foreground">Имею некоторый опыт</p>
+          </div>
+        </Option>
+        <Option
+          selected={state.bodyState.difficulty === 'advanced'}
+          onClick={() => handleDifficultySelect('advanced')}
+        >
+          <div className="flex flex-col">
+            <h3 className="text-lg font-semibold">Продвинутый</h3>
+            <p className="text-sm text-muted-foreground">Регулярно практикую</p>
+          </div>
+        </Option>
       </div>
     </QuizLayout>
   );
