@@ -3,70 +3,70 @@
 import { usePracticeFlow } from '@/context/PracticeFlowContext';
 import QuizLayout from '@/components/quiz/QuizLayout';
 import QuizOption from '@/components/quiz/QuizOption';
-import Image from 'next/image';
-
-type PathOption = {
-  id: 'time_goal' | 'approach';
-  title: string;
-  description: string;
-  iconSrc: string;
-};
-
-const pathOptions: PathOption[] = [
-  {
-    id: 'time_goal',
-    title: 'По времени и цели',
-    description: 'Подберите медитацию на основе длительности и задачи',
-    iconSrc: '/icons/time-icon.svg',
-  },
-  {
-    id: 'approach',
-    title: 'По подходу',
-    description: 'Выберите технику медитации, которую хотите практиковать',
-    iconSrc: '/icons/approach-icon.svg',
-  }
-];
+import { Hourglass, Headphones } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function PathSelectionStep() {
   const { state, setMeditationState, prevStep, nextStep } = usePracticeFlow();
 
-  const handlePathSelect = (path: 'time_goal' | 'approach') => {
+  const handlePathSelect = (path: 'self_guided' | 'guided') => {
     setMeditationState({ path });
     nextStep();
   };
 
   return (
     <QuizLayout
-      title="Как подобрать медитацию?"
-      subtitle="Выберите подход к выбору медитации"
+      title="Выберите подход к медитации"
+      subtitle="Как бы вы хотели практиковать медитацию?"
       backButton
       onBack={prevStep}
     >
-      <div className="flex flex-col gap-6 w-full mt-8">
-        {pathOptions.map((option) => (
-          <QuizOption
-            key={option.id}
-            selected={state.meditationState.path === option.id}
-            onClick={() => handlePathSelect(option.id)}
-          >
-            <div className="flex items-center gap-5">
-              <div className="flex-shrink-0 w-16 h-16 flex items-center justify-center bg-blue-50 rounded-lg">
-                <Image 
-                  src={option.iconSrc} 
-                  alt={option.title} 
-                  width={36}
-                  height={36}
-                  className="object-contain text-blue-600"
-                />
-              </div>
-              <div className="flex flex-col">
-                <h3 className="text-lg font-semibold text-gray-800">{option.title}</h3>
-                <p className="text-sm text-gray-500">{option.description}</p>
-              </div>
-            </div>
-          </QuizOption>
-        ))}
+      <div className="flex flex-col gap-4 w-full mt-6">
+        <PathOption
+          icon={<Hourglass size={20} />}
+          title="Самостоятельная"
+          description="Медитация без голосового сопровождения"
+          onClick={() => handlePathSelect('self_guided')}
+          selected={state.meditationState.path === 'self_guided'}
+        />
+        
+        <PathOption
+          icon={<Headphones size={20} />}
+          title="С сопровождением"
+          description="Медитация с инструкциями и подсказками"
+          onClick={() => handlePathSelect('guided')}
+          selected={state.meditationState.path === 'guided'}
+        />
       </div>
     </QuizLayout>
+  );
+}
+
+interface PathOptionProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  onClick: () => void;
+  selected: boolean;
+}
+
+function PathOption({ icon, title, description, onClick, selected }: PathOptionProps) {
+  return (
+    <QuizOption
+      onClick={onClick}
+      selected={selected}
+      className="flex items-center gap-3"
+    >
+      <div className={cn(
+        "w-10 h-10 rounded-full flex items-center justify-center",
+        selected ? "bg-primary text-white" : "bg-secondary text-foreground"
+      )}>
+        {icon}
+      </div>
+      <div className="flex flex-col">
+        <h3 className="text-base font-medium">{title}</h3>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+    </QuizOption>
   );
 } 

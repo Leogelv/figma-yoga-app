@@ -46,26 +46,26 @@ export default function TypeSelectionStep() {
       title="Какой тип практики вас интересует?"
       subtitle="Выберите одну из опций, чтобы мы могли подобрать подходящую практику"
     >
-      <div className="flex flex-col gap-6 w-full mt-8">
+      <div className="flex flex-col gap-4 w-full">
         {practiceTypes.map((type) => (
           <QuizOption
             key={type.id}
             selected={state.practiceType === type.id}
             onClick={() => handleTypeSelect(type.id)}
           >
-            <div className="flex items-center gap-5">
-              <div className="flex-shrink-0 w-16 h-16 flex items-center justify-center bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-4">
+              <div className="flex-shrink-0 w-14 h-14 flex items-center justify-center bg-accent/50 rounded-md">
                 <Image 
                   src={type.iconSrc} 
                   alt={type.title} 
-                  width={36}
-                  height={36}
-                  className="object-contain text-blue-600"
+                  width={32}
+                  height={32}
+                  className="object-contain text-primary"
                 />
               </div>
               <div className="flex flex-col">
-                <h3 className="text-lg font-semibold text-gray-800">{type.title}</h3>
-                <p className="text-sm text-gray-500">{type.description}</p>
+                <h3 className="text-base font-medium text-foreground">{type.title}</h3>
+                <p className="text-sm text-muted-foreground">{type.description}</p>
               </div>
             </div>
           </QuizOption>

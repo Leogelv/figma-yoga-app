@@ -2,10 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import PracticeCard from '../../../components/PracticeCard';
-import QuizButton from '../../../components/QuizButton';
-import { Practice, filterPractices } from '../../../data/practices';
+// import PracticeCard from '../../../components/PracticeCard';
+import QuizButton from '@/components/quiz/QuizButton';
+// import { Practice, filterPractices } from '../../../data/practices';
 import { useSearchParams } from 'next/navigation';
+
+// Временно определим тип Practice
+interface Practice {
+  id: string;
+  name: string;
+  type: string;
+  // другие поля
+}
 
 export default function ResultsPage() {
   const router = useRouter();
@@ -17,7 +25,7 @@ export default function ResultsPage() {
 
   useEffect(() => {
     // Инициализация Telegram Mini App
-    const telegram = window.Telegram?.WebApp;
+    const telegram = (window as any).Telegram?.WebApp;
     if (telegram) {
       telegram.ready();
       setTg(telegram);
@@ -74,9 +82,9 @@ export default function ResultsPage() {
     
     console.log('Применяемые фильтры:', filters);
     
-    // Фильтруем практики
-    const practices = filterPractices(filters);
-    setFilteredPractices(practices);
+    // Временно заполняем пустым массивом вместо фильтрации
+    // const practices = filterPractices(filters);
+    setFilteredPractices([]);
     setIsLoading(false);
   }, [searchParams, router]);
 
@@ -187,10 +195,12 @@ export default function ResultsPage() {
         }}>
           Попробуйте изменить параметры поиска
         </p>
-        <QuizButton 
-          text="Начать заново" 
+        <button 
           onClick={() => router.push('/quiz')}
-        />
+          className="px-6 py-3 bg-primary text-primary-foreground rounded-md"
+        >
+          Начать заново
+        </button>
       </div>
     );
   }
@@ -220,9 +230,9 @@ export default function ResultsPage() {
         Выберите практику, которая вам больше нравится
       </p>
       
-      {/* Список найденных практик */}
+      {/* Список найденных практик - временно закомментирован */}
       <div>
-        {filteredPractices.map(practice => (
+        {/*filteredPractices.map(practice => (
           <div 
             key={practice.id}
             onClick={() => handleSelectPractice(practice)}
@@ -239,7 +249,7 @@ export default function ResultsPage() {
               onClick={handleSelectPractice}
             />
           </div>
-        ))}
+        ))*/}
       </div>
       
       {/* Кнопка выбора практики */}
@@ -247,15 +257,15 @@ export default function ResultsPage() {
         position: 'sticky', 
         bottom: '16px',
         paddingTop: '16px',
-        background: 'linear-gradient(to top, white 70%, transparent)',
-        marginBottom: '0',
-        width: '100%'
+        background: 'linear-gradient(to top, white 70%, transparent)'
       }}>
-        <QuizButton 
-          text="Начать практику" 
-          onClick={handleStartPractice} 
+        <button
+          onClick={handleStartPractice}
           disabled={!selectedPractice}
-        />
+          className="w-full py-3 bg-primary text-primary-foreground rounded-md opacity-80"
+        >
+          Начать практику
+        </button>
       </div>
     </div>
   );

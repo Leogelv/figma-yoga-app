@@ -1,0 +1,810 @@
+{
+    "appName": "Приложение медитации и практик",
+    "version": "1.0.0",
+    "screens": [
+      {
+        "id": "home",
+        "name": "Главный экран",
+        "type": "main",
+        "order": 1,
+        "elements": [
+          {
+            "id": "btn_practice_select",
+            "type": "button",
+            "name": "Выбрать практику",
+            "transitions": [
+              {
+                "targetScreen": "practice_type_select",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_quick_practice",
+            "type": "button",
+            "name": "Быстрая практика 7 минут",
+            "transitions": [
+              {
+                "targetScreen": "quick_practice",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "info_cards",
+            "type": "infoCards",
+            "name": "Информационные карточки"
+          }
+        ],
+        "devInfo": {
+          "tested": true,
+          "notes": "Это главный экран, с которого начинается взаимодействие пользователя с приложением.",
+          "emotions": ["Интерес", "Мотивация"],
+          "role": "user",
+          "group": "home",
+          "uiElements": [
+            "Кнопка 'Выбрать практику'",
+            "Кнопка 'Быстрая практика 7 минут'",
+            "Информационные карточки"
+          ]
+        }
+      },
+      {
+        "id": "practice_type_select",
+        "name": "Выбор типа практики",
+        "type": "decision",
+        "order": 2,
+        "elements": [
+          {
+            "id": "btn_body_practice",
+            "type": "selectionButton",
+            "name": "Телесная 🧘‍♀️",
+            "transitions": [
+              {
+                "targetScreen": "body_group_header",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_breathing_practice",
+            "type": "selectionButton",
+            "name": "Дыхательная 💨",
+            "transitions": [
+              {
+                "targetScreen": "breathing_group_header",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_meditation_practice",
+            "type": "selectionButton",
+            "name": "Медитация 🧠",
+            "transitions": [
+              {
+                "targetScreen": "meditation_group_header",
+                "targetState": "default"
+              }
+            ]
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "notes": "Пользователь выбирает тип практики",
+          "role": "user",
+          "group": "home"
+        }
+      },
+      {
+        "id": "quick_practice",
+        "name": "Быстрая практика 7 минут",
+        "type": "screen",
+        "order": 3,
+        "elements": [
+          {
+            "id": "timer",
+            "type": "timer",
+            "name": "Таймер"
+          },
+          {
+            "id": "exercise_list",
+            "type": "list",
+            "name": "Список упражнений"
+          },
+          {
+            "id": "btn_pause",
+            "type": "button",
+            "name": "Кнопка паузы"
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "notes": "Фиксированная 7-минутная практика",
+          "emotions": ["Сосредоточенность", "Решительность"],
+          "role": "user",
+          "group": "home",
+          "uiElements": [
+            "Таймер",
+            "Список упражнений",
+            "Кнопка паузы"
+          ]
+        }
+      },
+      {
+        "id": "body_group_header",
+        "name": "Телесные практики",
+        "type": "screen",
+        "order": 4,
+        "elements": [
+          {
+            "id": "header_body",
+            "type": "header",
+            "name": "Заголовок раздела"
+          }
+        ],
+        "transitions": [
+          {
+            "targetScreen": "body_type_select",
+            "targetState": "default",
+            "automatic": true
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "notes": "Раздел телесных практик",
+          "role": "system",
+          "group": "body",
+          "isGroupHeader": true
+        }
+      },
+      {
+        "id": "body_type_select",
+        "name": "Выбор типа телесной практики",
+        "type": "decision",
+        "order": 5,
+        "elements": [
+          {
+            "id": "btn_posture",
+            "type": "selectionButton",
+            "name": "Осанка",
+            "transitions": [
+              {
+                "targetScreen": "body_time_select",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_yoga",
+            "type": "selectionButton",
+            "name": "Йога",
+            "transitions": [
+              {
+                "targetScreen": "body_time_select",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_joint_gymnastics",
+            "type": "selectionButton",
+            "name": "Суставная гимнастика",
+            "transitions": [
+              {
+                "targetScreen": "body_time_select",
+                "targetState": "default"
+              }
+            ]
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "role": "user",
+          "group": "body"
+        }
+      },
+      {
+        "id": "body_time_select",
+        "name": "Выбор продолжительности",
+        "type": "decision",
+        "order": 6,
+        "elements": [
+          {
+            "id": "btn_time_15",
+            "type": "selectionButton",
+            "name": "до 15 минут",
+            "transitions": [
+              {
+                "targetScreen": "body_goal_select",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_time_30",
+            "type": "selectionButton",
+            "name": "до 30 минут",
+            "transitions": [
+              {
+                "targetScreen": "body_goal_select",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_time_60",
+            "type": "selectionButton",
+            "name": "до 60 минут",
+            "transitions": [
+              {
+                "targetScreen": "body_goal_select",
+                "targetState": "default"
+              }
+            ]
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "role": "user",
+          "group": "body"
+        }
+      },
+      {
+        "id": "body_goal_select",
+        "name": "Выбор цели практики",
+        "type": "decision",
+        "order": 7,
+        "elements": [
+          {
+            "id": "btn_legs",
+            "type": "selectionButton",
+            "name": "Ноги",
+            "transitions": [
+              {
+                "targetScreen": "body_practice_result",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_whole_body",
+            "type": "selectionButton",
+            "name": "Все тело",
+            "transitions": [
+              {
+                "targetScreen": "body_practice_result",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_shoulders",
+            "type": "selectionButton",
+            "name": "Плечи",
+            "transitions": [
+              {
+                "targetScreen": "body_practice_result",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_balance",
+            "type": "selectionButton",
+            "name": "Баланс",
+            "transitions": [
+              {
+                "targetScreen": "body_practice_result",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_core",
+            "type": "selectionButton",
+            "name": "Кор",
+            "transitions": [
+              {
+                "targetScreen": "body_practice_result",
+                "targetState": "default"
+              }
+            ]
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "role": "user",
+          "group": "body"
+        }
+      },
+      {
+        "id": "body_practice_result",
+        "name": "Результат подбора телесной практики",
+        "type": "screen",
+        "order": 8,
+        "elements": [
+          {
+            "id": "practice_card",
+            "type": "card",
+            "name": "Карточка практики"
+          },
+          {
+            "id": "practice_description",
+            "type": "text",
+            "name": "Описание"
+          },
+          {
+            "id": "btn_start_practice",
+            "type": "button",
+            "name": "Кнопка 'Начать практику'"
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "role": "system",
+          "group": "body",
+          "uiElements": [
+            "Карточка практики",
+            "Описание",
+            "Кнопка 'Начать практику'"
+          ],
+          "actions": [
+            "Показ подобранной практики",
+            "Запуск видео при нажатии 'Начать'"
+          ]
+        }
+      },
+      {
+        "id": "breathing_group_header",
+        "name": "Дыхательные практики",
+        "type": "screen",
+        "order": 9,
+        "elements": [
+          {
+            "id": "header_breathing",
+            "type": "header",
+            "name": "Заголовок раздела"
+          }
+        ],
+        "transitions": [
+          {
+            "targetScreen": "breathing_approach_select",
+            "targetState": "default",
+            "automatic": true
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "notes": "Раздел дыхательных практик",
+          "role": "system",
+          "group": "breathing",
+          "isGroupHeader": true
+        }
+      },
+      {
+        "id": "breathing_approach_select",
+        "name": "Выбор подхода к дыханию",
+        "type": "decision",
+        "order": 10,
+        "elements": [
+          {
+            "id": "btn_stress_relief",
+            "type": "selectionButton",
+            "name": "Убрать стресс",
+            "transitions": [
+              {
+                "targetScreen": "breathing_practice_result",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_relaxation",
+            "type": "selectionButton",
+            "name": "Расслабление",
+            "transitions": [
+              {
+                "targetScreen": "breathing_practice_result",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_energy",
+            "type": "selectionButton",
+            "name": "Поднять энергию",
+            "transitions": [
+              {
+                "targetScreen": "breathing_practice_result",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_focus",
+            "type": "selectionButton",
+            "name": "Фокус",
+            "transitions": [
+              {
+                "targetScreen": "breathing_practice_result",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_depth",
+            "type": "selectionButton",
+            "name": "Глубина дыхания",
+            "transitions": [
+              {
+                "targetScreen": "breathing_practice_result",
+                "targetState": "default"
+              }
+            ]
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "role": "user",
+          "group": "breathing"
+        }
+      },
+      {
+        "id": "breathing_practice_result",
+        "name": "Результат подбора дыхательной практики",
+        "type": "screen",
+        "order": 11,
+        "elements": [
+          {
+            "id": "breathing_animation",
+            "type": "animation",
+            "name": "Анимация дыхания"
+          },
+          {
+            "id": "breathing_timer",
+            "type": "timer",
+            "name": "Таймер"
+          },
+          {
+            "id": "breathing_instructions",
+            "type": "text",
+            "name": "Инструкции"
+          },
+          {
+            "id": "btn_start_breathing",
+            "type": "button",
+            "name": "Кнопка 'Начать практику'"
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "role": "system",
+          "group": "breathing",
+          "uiElements": [
+            "Анимация дыхания",
+            "Таймер",
+            "Инструкции",
+            "Кнопка 'Начать практику'"
+          ],
+          "actions": [
+            "Запуск таймера при нажатии 'Начать'",
+            "Анимация ритма дыхания"
+          ]
+        }
+      },
+      {
+        "id": "meditation_group_header",
+        "name": "Медитации",
+        "type": "screen",
+        "order": 12,
+        "elements": [
+          {
+            "id": "header_meditation",
+            "type": "header",
+            "name": "Заголовок раздела"
+          }
+        ],
+        "transitions": [
+          {
+            "targetScreen": "meditation_approach_select",
+            "targetState": "default",
+            "automatic": true
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "notes": "Раздел медитаций",
+          "role": "system",
+          "group": "meditation",
+          "isGroupHeader": true
+        }
+      },
+      {
+        "id": "meditation_approach_select",
+        "name": "Выбор подхода к медитации",
+        "type": "decision",
+        "order": 13,
+        "elements": [
+          {
+            "id": "btn_self_meditation",
+            "type": "selectionButton",
+            "name": "Самостоятельная",
+            "transitions": [
+              {
+                "targetScreen": "meditation_object_select",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_guided_meditation",
+            "type": "selectionButton",
+            "name": "С сопровождением",
+            "transitions": [
+              {
+                "targetScreen": "meditation_goal_select",
+                "targetState": "default"
+              }
+            ]
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "role": "user",
+          "group": "meditation"
+        }
+      },
+      {
+        "id": "meditation_object_select",
+        "name": "Выбор объекта медитации",
+        "type": "decision",
+        "order": 14,
+        "elements": [
+          {
+            "id": "btn_breathing_object",
+            "type": "selectionButton",
+            "name": "Дыхание",
+            "transitions": [
+              {
+                "targetScreen": "meditation_timer",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_body_object",
+            "type": "selectionButton",
+            "name": "Тело",
+            "transitions": [
+              {
+                "targetScreen": "meditation_timer",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_sounds_object",
+            "type": "selectionButton",
+            "name": "Звуки",
+            "transitions": [
+              {
+                "targetScreen": "meditation_timer",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_thoughts_object",
+            "type": "selectionButton",
+            "name": "Мысли",
+            "transitions": [
+              {
+                "targetScreen": "meditation_timer",
+                "targetState": "default"
+              }
+            ]
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "role": "user",
+          "group": "meditation"
+        }
+      },
+      {
+        "id": "meditation_goal_select",
+        "name": "Выбор цели медитации",
+        "type": "decision",
+        "order": 15,
+        "elements": [
+          {
+            "id": "btn_calming",
+            "type": "selectionButton",
+            "name": "Успокоение",
+            "transitions": [
+              {
+                "targetScreen": "meditation_theme_select",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_concentration",
+            "type": "selectionButton",
+            "name": "Концентрация",
+            "transitions": [
+              {
+                "targetScreen": "meditation_theme_select",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_mindfulness",
+            "type": "selectionButton",
+            "name": "Осознанность",
+            "transitions": [
+              {
+                "targetScreen": "meditation_theme_select",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_sleep",
+            "type": "selectionButton",
+            "name": "Сон",
+            "transitions": [
+              {
+                "targetScreen": "meditation_theme_select",
+                "targetState": "default"
+              }
+            ]
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "role": "user",
+          "group": "meditation"
+        }
+      },
+      {
+        "id": "meditation_theme_select",
+        "name": "Выбор темы медитации",
+        "type": "decision",
+        "order": 16,
+        "elements": [
+          {
+            "id": "btn_nature",
+            "type": "selectionButton",
+            "name": "Природа",
+            "transitions": [
+              {
+                "targetScreen": "meditation_timer",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_space",
+            "type": "selectionButton",
+            "name": "Космос",
+            "transitions": [
+              {
+                "targetScreen": "meditation_timer",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_ocean",
+            "type": "selectionButton",
+            "name": "Океан",
+            "transitions": [
+              {
+                "targetScreen": "meditation_timer",
+                "targetState": "default"
+              }
+            ]
+          },
+          {
+            "id": "btn_music",
+            "type": "selectionButton",
+            "name": "Музыка",
+            "transitions": [
+              {
+                "targetScreen": "meditation_timer",
+                "targetState": "default"
+              }
+            ]
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "role": "user",
+          "group": "meditation"
+        }
+      },
+      {
+        "id": "meditation_timer",
+        "name": "Таймер медитации",
+        "type": "screen",
+        "order": 17,
+        "elements": [
+          {
+            "id": "countdown_timer",
+            "type": "timer",
+            "name": "Таймер обратного отсчета"
+          },
+          {
+            "id": "background_animation",
+            "type": "animation",
+            "name": "Фоновая анимация/видео"
+          },
+          {
+            "id": "audio_player",
+            "type": "player",
+            "name": "Аудио проигрыватель"
+          }
+        ],
+        "devInfo": {
+          "tested": false,
+          "role": "system",
+          "group": "meditation",
+          "uiElements": [
+            "Таймер обратного отсчета",
+            "Фоновая анимация/видео",
+            "Аудио проигрыватель"
+          ],
+          "actions": [
+            "Запуск таймера",
+            "Воспроизведение фоновой музыки"
+          ],
+          "emotions": [
+            "Спокойствие",
+            "Расслабленность"
+          ]
+        }
+      }
+    ],
+    "flowGroups": [
+      {
+        "id": "main_flow",
+        "name": "Основной поток",
+        "color": "#4A6FFF",
+        "screens": ["home", "practice_type_select", "quick_practice"]
+      },
+      {
+        "id": "body_flow",
+        "name": "Телесные практики",
+        "color": "#53B175",
+        "screens": ["body_group_header", "body_type_select", "body_time_select", "body_goal_select", "body_practice_result"]
+      },
+      {
+        "id": "breathing_flow",
+        "name": "Дыхательные практики",
+        "color": "#F8A44C",
+        "screens": ["breathing_group_header", "breathing_approach_select", "breathing_practice_result"]
+      },
+      {
+        "id": "meditation_flow",
+        "name": "Медитации",
+        "color": "#D3B0E0",
+        "screens": ["meditation_group_header", "meditation_approach_select", "meditation_object_select", "meditation_goal_select", "meditation_theme_select", "meditation_timer"]
+      }
+    ],
+    "viewOptions": {
+      "showDevInfo": false,
+      "showTransitions": true,
+      "showStates": true,
+      "layout": "topToBottom",
+      "groupBy": "flowGroups",
+      "colorByGroup": true
+    },
+    "metadata": {
+      "author": "Wellness App Team",
+      "lastModified": "2025-05-03",
+      "notes": "Схема экранов приложения для медитаций и практик"
+    }
+  }

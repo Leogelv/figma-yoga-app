@@ -1,64 +1,59 @@
 "use client";
 
-import { ReactNode } from 'react';
-import ContentSafeAreaWrapper from '@/components/ContentSafeAreaWrapper';
+import React, { ReactNode } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface QuizLayoutProps {
-  title: string;
-  subtitle?: string;
   children: ReactNode;
+  title?: string;
+  subtitle?: string;
   backButton?: boolean;
   onBack?: () => void;
+  className?: string;
+  contentClass?: string;
+  headerClass?: string;
 }
 
-export default function QuizLayout({
-  title,
-  subtitle,
-  children,
-  backButton = false,
-  onBack
+export default function QuizLayout({ 
+  children, 
+  title, 
+  subtitle, 
+  backButton = false, 
+  onBack, 
+  className,
+  contentClass,
+  headerClass
 }: QuizLayoutProps) {
   return (
-    <ContentSafeAreaWrapper>
-      <div className="flex flex-col h-full">
-        <header className="flex items-center h-16 p-4 relative">
-          {backButton && (
-            <button 
-              onClick={onBack}
-              className="absolute left-4 flex items-center justify-center w-10 h-10"
-            >
-              <svg 
-                width="24" 
-                height="24" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path 
-                  d="M15 18L9 12L15 6" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
+    <div className={cn("min-h-[100dvh] flex flex-col bg-background", className)}>
+      <header className={cn("px-4 py-6 flex items-center", headerClass)}>
+        {backButton && (
+          <button 
+            onClick={onBack} 
+            className="mr-3 w-10 h-10 rounded-full flex items-center justify-center bg-secondary transition-colors hover:bg-secondary/80"
+            aria-label="Назад"
+          >
+            <ArrowLeft size={20} />
+          </button>
+        )}
+        
+        <div className="flex-1">
+          {title && (
+            <h1 className="text-xl font-bold text-foreground">{title}</h1>
           )}
-          <div className="flex-1 text-center">
-            <h1 className="text-lg font-medium">Подбор практики</h1>
-          </div>
-        </header>
-
-        <main className="flex-1 p-6 overflow-y-auto">
-          <div className="flex flex-col max-w-md mx-auto">
-            <h2 className="text-xl font-semibold mb-2">{title}</h2>
-            {subtitle && (
-              <p className="text-sm text-muted-foreground mb-8">{subtitle}</p>
-            )}
-            {children}
-          </div>
-        </main>
-      </div>
-    </ContentSafeAreaWrapper>
+          {subtitle && (
+            <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
+          )}
+        </div>
+      </header>
+      
+      <main className={cn(
+        "flex-1 flex flex-col px-4 pb-6", 
+        contentClass
+      )}>
+        {children}
+      </main>
+    </div>
   );
 } 

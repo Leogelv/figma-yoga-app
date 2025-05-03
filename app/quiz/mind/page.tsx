@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function BodyQuizPage() {
+export default function MindQuizPage() {
   const router = useRouter();
   const [tg, setTg] = useState<any>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -33,12 +33,12 @@ export default function BodyQuizPage() {
     // Автоматический переход с параметрами
     setTimeout(() => {
       let params = new URLSearchParams();
-      params.append('type', 'yoga'); // Для API используем yoga
+      params.append('type', 'meditation'); // Для API используем meditation
       
-      if (type === 'yoga') {
-        params.append('yogaType', 'general');
-      } else if (type === 'stretching') {
-        params.append('stretchingIntensity', 'medium');
+      if (type === 'meditation') {
+        params.append('meditationType', 'relaxation');
+      } else if (type === 'breathing') {
+        params.append('breathingIntensity', 'medium');
       }
       
       router.push(`/quiz/results?${params.toString()}`);
@@ -102,11 +102,11 @@ export default function BodyQuizPage() {
         padding: '20px',
         zIndex: '1'
       }}>
-        {/* Йога */}
+        {/* Медитация */}
         <div 
-          onClick={() => handleOptionSelect('yoga')}
+          onClick={() => handleOptionSelect('meditation')}
           style={{
-            border: selectedOption === 'yoga' ? '3px solid #337FFF' : '1px solid #e0e0e0',
+            border: selectedOption === 'meditation' ? '3px solid #337FFF' : '1px solid #e0e0e0',
             borderRadius: '24px',
             padding: '24px',
             marginBottom: '16px',
@@ -114,7 +114,7 @@ export default function BodyQuizPage() {
             cursor: 'pointer',
             position: 'relative',
             transition: 'transform 0.2s, border-color 0.2s',
-            transform: selectedOption === 'yoga' ? 'scale(0.98)' : 'scale(1)'
+            transform: selectedOption === 'meditation' ? 'scale(0.98)' : 'scale(1)'
           }}
         >
           <h2 style={{
@@ -122,17 +122,17 @@ export default function BodyQuizPage() {
             fontWeight: 600,
             margin: '0 0 8px 0'
           }}>
-            Йога
+            Медитация
           </h2>
           <p style={{
             fontSize: '16px',
             color: '#666',
             margin: '0'
           }}>
-            Асаны и последовательности для силы и гибкости
+            Расслабление, концентрация и осознанность
           </p>
           
-          {selectedOption === 'yoga' && (
+          {selectedOption === 'meditation' && (
             <div style={{
               position: 'absolute',
               top: '24px',
@@ -153,18 +153,18 @@ export default function BodyQuizPage() {
           )}
         </div>
         
-        {/* Растяжка */}
+        {/* Дыхательные практики */}
         <div 
-          onClick={() => handleOptionSelect('stretching')}
+          onClick={() => handleOptionSelect('breathing')}
           style={{
-            border: selectedOption === 'stretching' ? '3px solid #337FFF' : '1px solid #e0e0e0',
+            border: selectedOption === 'breathing' ? '3px solid #337FFF' : '1px solid #e0e0e0',
             borderRadius: '24px',
             padding: '24px',
             background: 'white',
             cursor: 'pointer',
             position: 'relative',
             transition: 'transform 0.2s, border-color 0.2s',
-            transform: selectedOption === 'stretching' ? 'scale(0.98)' : 'scale(1)'
+            transform: selectedOption === 'breathing' ? 'scale(0.98)' : 'scale(1)'
           }}
         >
           <h2 style={{
@@ -172,17 +172,17 @@ export default function BodyQuizPage() {
             fontWeight: 600,
             margin: '0 0 8px 0'
           }}>
-            Растяжка
+            Дыхательные практики
           </h2>
           <p style={{
             fontSize: '16px',
             color: '#666',
             margin: '0'
           }}>
-            Упражнения для улучшения гибкости всего тела
+            Техники дыхания для энергии и расслабления
           </p>
           
-          {selectedOption === 'stretching' && (
+          {selectedOption === 'breathing' && (
             <div style={{
               position: 'absolute',
               top: '24px',

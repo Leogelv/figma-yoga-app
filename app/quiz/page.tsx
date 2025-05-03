@@ -16,7 +16,8 @@ import GoalStep from '@/components/practice-flow/body/GoalStep';
 import PathSelectionStep from '@/components/practice-flow/meditation/PathSelectionStep';
 import MeditationGoalStep from '@/components/practice-flow/meditation/GoalStep';
 import MeditationDurationStep from '@/components/practice-flow/meditation/DurationStep';
-import ExperienceStep from '@/components/practice-flow/meditation/ExperienceStep';
+import ObjectSelectionStep from '@/components/practice-flow/meditation/ObjectSelectionStep';
+import ThemeSelectionStep from '@/components/practice-flow/meditation/ThemeSelectionStep';
 // Breathing
 import BreathingGoalStep from '@/components/practice-flow/breathing/GoalStep';
 import IntensityStep from '@/components/practice-flow/breathing/IntensityStep';
@@ -94,8 +95,10 @@ function PracticeQuizContent() {
     let quizFinished = false;
     if (state.practiceType === 'body') {
       quizFinished = !!(state.bodyState.bodyType && state.bodyState.difficulty && state.bodyState.duration && state.bodyState.goal);
-    } else if (state.practiceType === 'meditation' && state.meditationState.path === 'time_goal') {
-      quizFinished = !!(state.meditationState.goal && state.meditationState.duration && state.meditationState.experience);
+    } else if (state.practiceType === 'meditation' && state.meditationState.path === 'guided') {
+      quizFinished = !!(state.meditationState.goal && state.meditationState.duration && state.meditationState.theme);
+    } else if (state.practiceType === 'meditation' && state.meditationState.path === 'self_guided') {
+      quizFinished = !!(state.meditationState.object);
     } else if (state.practiceType === 'breathing') { // Добавляем проверку для дыхания
       quizFinished = !!(state.breathingState.goal && state.breathingState.intensity && state.breathingState.duration);
     } // Добавить условия для других путей и типов
@@ -151,17 +154,25 @@ function PracticeQuizContent() {
          // Нужна логика сопоставления цели квиза (relax, flexibility...) с тегами или описанием практики в API
       }
 
-      // 4. Специфичные фильтры для МЕДИТАЦИИ (путь время/цель)
-      if (state.practiceType === 'meditation' && state.meditationState.path === 'time_goal') {
-          if (state.meditationState.duration) {
-              const apiDurationRange = mapDurationToApi(state.meditationState.duration);
-              const practiceMinutes = parseDurationToMinutes(p.duration);
-              if (apiDurationRange && practiceMinutes !== null) {
-                 if (practiceMinutes < apiDurationRange[0] || practiceMinutes > apiDurationRange[1]) return false;
-              } else return false; 
+      // 4. Специфичные фильтры для МЕДИТАЦИИ
+      if (state.practiceType === 'meditation') {
+          // Общие фильтры для всех путей медитации
+          if (state.meditationState.path === 'guided') {
+              if (state.meditationState.duration) {
+                  const apiDurationRange = mapDurationToApi(state.meditationState.duration);
+                  const practiceMinutes = parseDurationToMinutes(p.duration);
+                  if (apiDurationRange && practiceMinutes !== null) {
+                     if (practiceMinutes < apiDurationRange[0] || practiceMinutes > apiDurationRange[1]) return false;
+                  } else return false; 
+              }
+              // TODO: Добавить фильтры по state.meditationState.goal и state.meditationState.theme
+              // Нужна логика сопоставления цели (relaxation...) и темы (nature...) с данными API
           }
-          // TODO: Добавить фильтры по state.meditationState.goal и state.meditationState.experience
-          // Нужна логика сопоставления цели (relaxation...) и опыта (beginner...) с данными API
+          
+          if (state.meditationState.path === 'self_guided') {
+              // TODO: Добавить фильтры по state.meditationState.object
+              // Например, искать в описании или тегах упоминания выбранного объекта медитации (breathing, body, etc)
+          }
       }
 
       // Фильтры для ДЫХАНИЯ
@@ -241,22 +252,10 @@ function PracticeQuizContent() {
   
   // Отображаем экран таймера, если он активен
   if (showTimer && activePractice) {
-    // Получаем длительность в минутах из строки вида "MM:SS"
-    const getDurationInMinutes = (durationStr?: string): number => {
-      if (!durationStr) return 5; // По умолчанию 5 минут
-      const parts = durationStr.split(':');
-      if (parts.length !== 2) return 5;
-      const minutes = parseInt(parts[0], 10);
-      const seconds = parseInt(parts[1], 10);
-      return isNaN(minutes) ? 5 : minutes + (seconds / 60);
-    };
-
     return (
       <QuizLayout title={activePractice.name} backButton onBack={handleTimerCancel}>
         <TimerScreen
-          title={activePractice.name}
-          description={activePractice.descr || 'Следуйте инструкциям практики'}
-          duration={getDurationInMinutes(activePractice.duration)}
+          practice={activePractice}
           onComplete={handleTimerComplete}
           onCancel={handleTimerCancel}
         />
@@ -270,7 +269,7 @@ function PracticeQuizContent() {
       <QuizLayout title="Подбор практики">
         <div className="flex justify-center items-center h-full">
           <LoadingSpinner />
-        </div>
+            </div>
       </QuizLayout>
     );
   }
@@ -293,7 +292,10 @@ function PracticeQuizContent() {
        <RecommendationScreen 
           practice={recommendedPractice} 
           onStart={handleStart}
-          onAnotherRecommendation={handleAnother}
+          onBack={prevStep}
+          onAnotherPractice={handleAnother}
+          isLoading={isLoading}
+          error={error}
         />
     );
   }
@@ -323,17 +325,15 @@ function PracticeQuizContent() {
 
     if (state.practiceType === 'meditation') {
       if (!state.meditationState.path) return <PathSelectionStep />;
-      if (state.meditationState.path === 'time_goal') {
+      
+      if (state.meditationState.path === 'guided') {
         if (!state.meditationState.goal) return <MeditationGoalStep />;
+        if (!state.meditationState.theme) return <ThemeSelectionStep />;
         if (!state.meditationState.duration) return <MeditationDurationStep />;
-        if (!state.meditationState.experience) return <ExperienceStep />;
       }
-      if (state.meditationState.path === 'approach') {
-         return (
-          <QuizLayout title="Выбор по технике" subtitle="Эта функция пока в разработке" backButton onBack={prevStep}>
-            <div className="mt-6 w-full"><QuizButton onClick={resetFlow}>Выбрать другой тип</QuizButton></div>
-          </QuizLayout>
-        );
+      
+      if (state.meditationState.path === 'self_guided') {
+        if (!state.meditationState.object) return <ObjectSelectionStep />;
       }
     }
     
@@ -350,7 +350,7 @@ function PracticeQuizContent() {
         <QuizLayout title="Подбираем практику...">
           <div className="flex justify-center items-center h-full">
             <LoadingSpinner />
-          </div>
+      </div>
         </QuizLayout>
       );
     }

@@ -1,37 +1,58 @@
 "use client";
 
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 interface QuizOptionProps {
   children: ReactNode;
   selected?: boolean;
   onClick?: () => void;
+  className?: string;
   disabled?: boolean;
 }
 
-export default function QuizOption({
-  children,
-  selected = false,
-  onClick,
-  disabled = false
+export default function QuizOption({ 
+  children, 
+  selected = false, 
+  onClick, 
+  className, 
+  disabled = false 
 }: QuizOptionProps) {
   return (
-    <button
-      type="button"
+    <div
       className={cn(
-        "w-full p-6 border rounded-xl text-left transition-all duration-200 ease-in-out",
-        "bg-white shadow-md hover:shadow-lg",
-        "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-        selected
-          ? "border-blue-500 border-2"
-          : "border-gray-200 hover:border-gray-300",
-        disabled && "opacity-60 cursor-not-allowed grayscale"
+        "quiz-option",
+        selected && "selected",
+        disabled && "opacity-60 cursor-not-allowed",
+        className
       )}
-      onClick={onClick}
-      disabled={disabled}
+      onClick={disabled ? undefined : onClick}
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      aria-disabled={disabled}
     >
       {children}
-    </button>
+      {selected && (
+        <div className="absolute right-4 flex items-center justify-center">
+          <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+            <svg 
+              width="14" 
+              height="14" 
+              viewBox="0 0 14 14" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path 
+                d="M11.6667 3.5L5.25 9.91667L2.33333 7" 
+                stroke="white" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+        </div>
+      )}
+    </div>
   );
 } 
