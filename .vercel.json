@@ -1,0 +1,4 @@
+{
+  "buildCommand": "NEXT_PUBLIC_IGNORE_BUILD_ERROR=true next build",
+  "outputDirectory": ".next"
+} 

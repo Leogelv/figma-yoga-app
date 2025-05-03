@@ -6,25 +6,25 @@ import { fetchPractices } from '@/lib/api';
 import { ApiPractice } from '@/types/practice';
 
 // Компоненты шагов
-import TypeSelectionStep from '@/components/practice-flow/TypeSelectionStep';
+import TypeSelectionStep from '@/components/quiz-flow/TypeSelectionStep';
 // Body
-import BodyTypeStep from '@/components/practice-flow/body/BodyTypeStep';
-import DifficultyStep from '@/components/practice-flow/body/DifficultyStep';
-import DurationStep from '@/components/practice-flow/body/DurationStep';
-import GoalStep from '@/components/practice-flow/body/GoalStep';
+import BodyTypeStep from '@/components/quiz-flow/body/BodyTypeStep';
+import DifficultyStep from '@/components/quiz-flow/body/DifficultyStep';
+import DurationStep from '@/components/quiz-flow/body/DurationStep';
+import GoalStep from '@/components/quiz-flow/body/GoalStep';
 // Meditation
-import PathSelectionStep from '@/components/practice-flow/meditation/PathSelectionStep';
-import MeditationGoalStep from '@/components/practice-flow/meditation/GoalStep';
-import MeditationDurationStep from '@/components/practice-flow/meditation/DurationStep';
-import ObjectSelectionStep from '@/components/practice-flow/meditation/ObjectSelectionStep';
-import ThemeSelectionStep from '@/components/practice-flow/meditation/ThemeSelectionStep';
+import PathSelectionStep from '@/components/quiz-flow/meditation/PathSelectionStep';
+import MeditationGoalStep from '@/components/quiz-flow/meditation/GoalStep';
+import MeditationDurationStep from '@/components/quiz-flow/meditation/DurationStep';
+import ObjectSelectionStep from '@/components/quiz-flow/meditation/ObjectSelectionStep';
+import ThemeSelectionStep from '@/components/quiz-flow/meditation/ThemeSelectionStep';
 // Breathing
-import BreathingGoalStep from '@/components/practice-flow/breathing/GoalStep';
-import IntensityStep from '@/components/practice-flow/breathing/IntensityStep';
-import BreathingDurationStep from '@/components/practice-flow/breathing/DurationStep';
+import BreathingGoalStep from '@/components/quiz-flow/breathing/GoalStep';
+import IntensityStep from '@/components/quiz-flow/breathing/IntensityStep';
+import BreathingDurationStep from '@/components/quiz-flow/breathing/DurationStep';
 // Экран рекомендации и общие компоненты
-import RecommendationScreen from '@/components/practice-flow/RecommendationScreen';
-import TimerScreen from '@/components/practice-flow/TimerScreen';
+import RecommendationScreen from '@/components/quiz-flow/RecommendationScreen';
+import TimerScreen from '@/components/practice-flow/timer/TimerScreen';
 import QuizLayout from '@/components/quiz/QuizLayout';
 import QuizButton from '@/components/quiz/QuizButton';
 // Путь к LoadingSpinner теперь правильный

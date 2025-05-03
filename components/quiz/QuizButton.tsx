@@ -4,10 +4,12 @@ import React, { ReactNode, ButtonHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
 type VariantType = 'primary' | 'secondary' | 'outline' | 'ghost';
+type SizeType = 'sm' | 'md' | 'lg' | 'default';
 
 interface QuizButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
   variant?: VariantType;
+  size?: SizeType;
   className?: string;
   fullWidth?: boolean;
   isLoading?: boolean;
@@ -18,6 +20,7 @@ export default function QuizButton({
   children,
   className,
   variant = 'primary',
+  size = 'default',
   fullWidth = true,
   isLoading = false,
   withRipple = false,
@@ -59,6 +62,14 @@ export default function QuizButton({
     }, 700);
   };
   
+  // Map size to appropriate padding/height classes
+  const sizeClasses = {
+    sm: 'py-1.5 px-3 text-sm',
+    md: 'py-2 px-4',
+    lg: 'py-3 px-5 text-base',
+    default: 'py-2.5 px-4'
+  };
+  
   return (
     <button
       ref={buttonRef}
@@ -66,6 +77,7 @@ export default function QuizButton({
       className={cn(
         'quiz-button',
         `quiz-button-${variant}`,
+        sizeClasses[size],
         fullWidth && 'w-full',
         isLoading && 'opacity-70 cursor-not-allowed',
         className
