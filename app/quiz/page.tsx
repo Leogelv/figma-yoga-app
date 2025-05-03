@@ -6,29 +6,27 @@ import { fetchPractices } from '@/lib/api';
 import { ApiPractice } from '@/types/practice';
 
 // Компоненты шагов
-import TypeSelectionStep from '@/components/quiz-flow/TypeSelectionStep';
+import TypeSelectionStep from '@/components/quiz/steps/TypeSelectionStep';
 // Body
-import BodyTypeStep from '@/components/quiz-flow/body/BodyTypeStep';
-import DifficultyStep from '@/components/quiz-flow/body/DifficultyStep';
-import DurationStep from '@/components/quiz-flow/body/DurationStep';
-import GoalStep from '@/components/quiz-flow/body/GoalStep';
+import BodyTypeStep from '@/components/quiz/steps/body/BodyTypeStep';
+import DifficultyStep from '@/components/quiz/steps/body/DifficultyStep';
+import DurationStep from '@/components/quiz/steps/body/DurationStep';
+import GoalStep from '@/components/quiz/steps/body/GoalStep';
 // Meditation
-import PathSelectionStep from '@/components/quiz-flow/meditation/PathSelectionStep';
-import MeditationGoalStep from '@/components/quiz-flow/meditation/GoalStep';
-import MeditationDurationStep from '@/components/quiz-flow/meditation/DurationStep';
-import ObjectSelectionStep from '@/components/quiz-flow/meditation/ObjectSelectionStep';
-import ThemeSelectionStep from '@/components/quiz-flow/meditation/ThemeSelectionStep';
+import PathSelectionStep from '@/components/quiz/steps/meditation/PathSelectionStep';
+import MeditationGoalStep from '@/components/quiz/steps/meditation/GoalStep';
+import MeditationDurationStep from '@/components/quiz/steps/meditation/DurationStep';
+import ObjectSelectionStep from '@/components/quiz/steps/meditation/ObjectSelectionStep';
+import ThemeSelectionStep from '@/components/quiz/steps/meditation/ThemeSelectionStep';
 // Breathing
-import BreathingGoalStep from '@/components/quiz-flow/breathing/GoalStep';
-import IntensityStep from '@/components/quiz-flow/breathing/IntensityStep';
-import BreathingDurationStep from '@/components/quiz-flow/breathing/DurationStep';
-// Экран рекомендации и общие компоненты
-import RecommendationScreen from '@/components/quiz-flow/RecommendationScreen';
-import TimerScreen from '@/components/practice-flow/timer/TimerScreen';
-import QuizLayout from '@/components/quiz/QuizLayout';
-import QuizButton from '@/components/quiz/QuizButton';
-// Путь к LoadingSpinner теперь правильный
-import LoadingSpinner from '@/components/ui/LoadingSpinner'; 
+import BreathingGoalStep from '@/components/quiz/steps/breathing/GoalStep';
+import IntensityStep from '@/components/quiz/steps/breathing/IntensityStep';
+import BreathingDurationStep from '@/components/quiz/steps/breathing/DurationStep';
+// Общие компоненты
+import PracticeScreen from '@/components/practice/PracticeScreen';
+import QuizLayout from '@/components/ui/layout/QuizLayout';
+import Button from '@/components/ui/button/Button';
+import Spinner from '@/components/ui/loading/Spinner'; 
 
 // --- Маппинг значений квиза на значения API ---
 const mapDifficultyToApi = (difficulty: string | null): string[] => {
@@ -71,8 +69,7 @@ function PracticeQuizContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isQuizComplete, setIsQuizComplete] = useState(false);
-  const [activePractice, setActivePractice] = useState<ApiPractice | null>(null);
-  const [showTimer, setShowTimer] = useState(false);
+  const [showPractice, setShowPractice] = useState(false);
 
   // Загрузка практик при монтировании
   useEffect(() => {
@@ -151,7 +148,6 @@ function PracticeQuizContent() {
               } else return false; // Не можем сравнить, если нет данных
           }
          // TODO: Добавить фильтр по state.bodyState.goal и state.bodyState.bodyType (йога/растяжка)
-         // Нужна логика сопоставления цели квиза (relax, flexibility...) с тегами или описанием практики в API
       }
 
       // 4. Специфичные фильтры для МЕДИТАЦИИ
@@ -166,12 +162,10 @@ function PracticeQuizContent() {
                   } else return false; 
               }
               // TODO: Добавить фильтры по state.meditationState.goal и state.meditationState.theme
-              // Нужна логика сопоставления цели (relaxation...) и темы (nature...) с данными API
           }
           
           if (state.meditationState.path === 'self_guided') {
               // TODO: Добавить фильтры по state.meditationState.object
-              // Например, искать в описании или тегах упоминания выбранного объекта медитации (breathing, body, etc)
           }
       }
 
@@ -187,7 +181,6 @@ function PracticeQuizContent() {
               } else return false;
           }
          // TODO: Фильтр по state.breathingState.goal и state.breathingState.intensity
-         // Нужна логика сопоставления цели (energy...) и интенсивности (mild...) с данными API
       }
       
       return true; // Прошла все фильтры
@@ -199,67 +192,52 @@ function PracticeQuizContent() {
       // Выбираем случайную из отфильтрованных
       const randomIndex = Math.floor(Math.random() * filtered.length);
       setRecommendedPractice(filtered[randomIndex]);
+      // Сразу показываем практику после завершения квиза
+      setShowPractice(true);
     } else {
       setError('К сожалению, мы не нашли подходящих практик. Попробуйте изменить критерии.');
       setRecommendedPractice(null);
+      setShowPractice(false);
     }
     setIsLoading(false);
   };
 
   // Логика для получения другой практики
-  const handleAnother = () => {
+  const handleAnotherPractice = () => {
     if (recommendedPractice) {
       console.log('Requesting another practice, excluding:', recommendedPractice._id);
       addExcludedPracticeId(recommendedPractice._id);
       // Перефильтруем практики с учетом нового исключенного ID
-      // Так как useEffect зависит от state, он автоматически вызовет findRecommendedPractice()
+      findRecommendedPractice();
     } else {
-      // Если рекомендаций не было, просто пробуем найти снова (или сбрасываем?)
+      // Если рекомендаций не было, просто пробуем найти снова
       findRecommendedPractice();
     }
   };
 
-  // Логика старта практики
-  const handleStart = (practice: ApiPractice) => {
-    console.log('Starting practice:', practice.name);
-    setActivePractice(practice);
-    
-    // Логика выбора: таймер или плеер
-    // Если у практики есть kinescope, то мы уже показываем его в RecommendationScreen
-    // Для других типов практик (без kinescope) показываем таймер
-    if (!practice.kinescope) {
-      setShowTimer(true);
-    } else {
-      // Для практик с kinescope действия уже выполнены в RecommendationScreen
-      // Видео уже отображается через iframe
-      console.log('Practice with video is started via Kinescope player');
-    }
-  };
-
-  // Обработчики для таймера
-  const handleTimerComplete = () => {
-    console.log('Timer completed for practice:', activePractice?.name);
+  // Обработчики для экрана практики
+  const handlePracticeComplete = () => {
+    console.log('Practice completed:', recommendedPractice?.name);
     // Здесь можно добавить логику для сохранения статистики
-    setShowTimer(false);
-    setActivePractice(null);
+    setShowPractice(false);
+    resetFlow(); // Возврат к началу квиза
   };
 
-  const handleTimerCancel = () => {
-    console.log('Timer cancelled for practice:', activePractice?.name);
-    setShowTimer(false);
-    setActivePractice(null);
+  const handlePracticeCancel = () => {
+    console.log('Practice cancelled:', recommendedPractice?.name);
+    setShowPractice(false);
+    prevStep(); // Возврат к последнему шагу квиза
   };
   
-  // Отображаем экран таймера, если он активен
-  if (showTimer && activePractice) {
+  // Отображаем экран практики, если есть рекомендация и квиз завершен
+  if (showPractice && recommendedPractice && isQuizComplete) {
     return (
-      <QuizLayout title={activePractice.name} backButton onBack={handleTimerCancel}>
-        <TimerScreen
-          practice={activePractice}
-          onComplete={handleTimerComplete}
-          onCancel={handleTimerCancel}
-        />
-      </QuizLayout>
+      <PracticeScreen
+        practice={recommendedPractice}
+        onComplete={handlePracticeComplete}
+        onCancel={handlePracticeCancel}
+        onAnotherPractice={handleAnotherPractice}
+      />
     );
   }
   
@@ -268,8 +246,8 @@ function PracticeQuizContent() {
     return (
       <QuizLayout title="Подбор практики">
         <div className="flex justify-center items-center h-full">
-          <LoadingSpinner />
-            </div>
+          <Spinner />
+        </div>
       </QuizLayout>
     );
   }
@@ -280,33 +258,30 @@ function PracticeQuizContent() {
       <QuizLayout title="Ошибка" backButton onBack={resetFlow}>
         <div className="text-center mt-10">
           <p className="text-red-600 mb-4">{error}</p>
-          <QuizButton onClick={resetFlow}>Начать заново</QuizButton>
+          <Button onClick={resetFlow}>Начать заново</Button>
         </div>
       </QuizLayout>
     );
   }
   
-  // Если квиз завершен и есть рекомендация
-  if (isQuizComplete && recommendedPractice) {
-    return (
-       <RecommendationScreen 
-          practice={recommendedPractice} 
-          onStart={handleStart}
-          onBack={prevStep}
-          onAnotherPractice={handleAnother}
-          isLoading={isLoading}
-          error={error}
-        />
-    );
-  }
-
-  // Если квиз завершен, но практик не найдено (показываем ошибку фильтрации)
-  if (isQuizComplete && !recommendedPractice) {
+  // Если квиз завершен, практик не найдено (показываем ошибку фильтрации)
+  if (isQuizComplete && !recommendedPractice && !isLoading) {
      return (
       <QuizLayout title="Ничего не найдено" backButton onBack={prevStep}> 
         <div className="text-center mt-10">
           <p className="text-gray-600 mb-4">{error || 'К сожалению, по вашим критериям ничего не найдено.'}</p>
-          <QuizButton onClick={handleAnother}>Попробовать другие критерии</QuizButton>
+          <Button onClick={handleAnotherPractice}>Попробовать другие критерии</Button>
+        </div>
+      </QuizLayout>
+    );
+  }
+
+  // Если квиз завершен и загружается рекомендация
+  if (isQuizComplete && isLoading) {
+    return (
+      <QuizLayout title="Подбираем практику...">
+        <div className="flex justify-center items-center h-full">
+          <Spinner />
         </div>
       </QuizLayout>
     );
@@ -342,17 +317,6 @@ function PracticeQuizContent() {
       if (!state.breathingState.goal) return <BreathingGoalStep />;
       if (!state.breathingState.intensity) return <IntensityStep />;
       if (!state.breathingState.duration) return <BreathingDurationStep />; 
-    }
-
-    // Если квиз завершен, но рекомендация еще не готова (показываем спиннер)
-     if (isQuizComplete && isLoading) {
-      return (
-        <QuizLayout title="Подбираем практику...">
-          <div className="flex justify-center items-center h-full">
-            <LoadingSpinner />
-      </div>
-        </QuizLayout>
-      );
     }
 
     return <TypeSelectionStep />; // Запасной вариант
