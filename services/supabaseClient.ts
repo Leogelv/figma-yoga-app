@@ -1,66 +1,18 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 
-// Get environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_PROJECT_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '';
+// Приоритезируем переменные NEXT_PUBLIC, затем смотрим SUPABASE_* переменные
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_PROJECT_URL || 'https://umgioqmcytxkspbrbaww.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtZ2lvcW1jeXR4a3NwYnJiYXd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTM3ODg5NDAsImV4cCI6MjAyOTM2NDk0MH0.kPvXVc1YJL5ekRWyUMFO9K3cOAFHm9XuQhXL3iC71Qc';
 
-// Check if we're in a browser environment
-const isBrowser = typeof window !== 'undefined';
+console.log('Supabase URL:', supabaseUrl);
+console.log('Supabase Key:', supabaseAnonKey ? 'Present' : 'Missing');
 
-let supabase: SupabaseClient;
-
-// Create a mock client for client-side when env vars aren't available
-if (isBrowser && (!supabaseUrl || !supabaseAnonKey)) {
-  console.error('Missing Supabase environment variables');
-  
-  // Create a mock client that won't crash the app
-  const mockFunctions = {
-    from: () => ({
-      select: () => ({
-        eq: () => ({
-          single: () => Promise.resolve({ data: null, error: null }),
-          limit: () => Promise.resolve({ data: [], error: null }),
-        }),
-        limit: () => Promise.resolve({ data: [], error: null }),
-      }),
-      insert: () => ({
-        select: () => ({
-          single: () => Promise.resolve({ data: null, error: null }),
-        }),
-      }),
-      update: () => ({
-        eq: () => ({
-          select: () => ({
-            single: () => Promise.resolve({ data: null, error: null }),
-          }),
-        }),
-      }),
-      delete: () => ({
-        eq: () => Promise.resolve({ data: null, error: null }),
-      }),
-    }),
-    channel: () => ({
-      on: () => ({
-        subscribe: () => ({}),
-      }),
-    }),
-    removeChannel: () => {},
-  };
-
-  supabase = mockFunctions as unknown as SupabaseClient;
-} else {
-  // Create a real Supabase client
-  supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    realtime: {
-      params: {
-        log_level: process.env.NODE_ENV === 'development' ? 'info' : 'error',
-      },
-    },
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    },
-  });
-}
+// Create Supabase client
+const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+});
 
 export default supabase; 

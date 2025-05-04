@@ -32,23 +32,6 @@ interface TelegramAuthProviderProps {
   children: ReactNode;
 }
 
-// Функция для создания локального userData объекта в случае, если Supabase недоступен
-const createLocalUserData = (telegramUser: TelegramUser): UserData => {
-  const now = new Date().toISOString();
-  return {
-    id: `local_${telegramUser.id}`,
-    telegram_id: telegramUser.id.toString(),
-    telegram_username: telegramUser.username || '',
-    username: telegramUser.username || '',
-    first_name: telegramUser.firstName || '',
-    last_name: telegramUser.lastName || '',
-    created_at: now,
-    updated_at: now,
-    last_login: now,
-    preferences: {}
-  };
-};
-
 export const TelegramAuthProvider: React.FC<TelegramAuthProviderProps> = ({ children }) => {
   const { isInTelegram, getUserInfo } = useTelegram();
   const [user, setUser] = useState<TelegramUser | null>(null);
@@ -56,7 +39,6 @@ export const TelegramAuthProvider: React.FC<TelegramAuthProviderProps> = ({ chil
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<any>(null);
-  const [offlineMode, setOfflineMode] = useState<boolean>(false);
 
   // Initialize auth on component mount
   useEffect(() => {
@@ -75,46 +57,24 @@ export const TelegramAuthProvider: React.FC<TelegramAuthProviderProps> = ({ chil
           };
           setUser(mockUser);
           
-          try {
-            // Get or create user in Supabase
-            const supabaseUser = await createOrGetUser(mockUser);
-            if (supabaseUser) {
-              setUserData(supabaseUser);
-              // Subscribe to updates
-              const channel = subscribeToUserUpdates(supabaseUser.id, handleUserUpdate);
-              channelRef.current = channel;
-            } else {
-              // Если supabaseUser null, используем локальные данные
-              setUserData(createLocalUserData(mockUser));
-              setOfflineMode(true);
-            }
-          } catch (supabaseError) {
-            console.error("Ошибка Supabase:", supabaseError);
-            // Используем локальные данные в случае ошибки
-            setUserData(createLocalUserData(mockUser));
-            setOfflineMode(true);
+          // Get or create user in Supabase
+          const supabaseUser = await createOrGetUser(mockUser);
+          if (supabaseUser) {
+            setUserData(supabaseUser);
+            // Subscribe to updates
+            const channel = subscribeToUserUpdates(supabaseUser.id, handleUserUpdate);
+            channelRef.current = channel;
           }
         } else if (telegramUser) {
           setUser(telegramUser);
           
-          try {
-            // Get or create user in Supabase
-            const supabaseUser = await createOrGetUser(telegramUser);
-            if (supabaseUser) {
-              setUserData(supabaseUser);
-              // Subscribe to updates
-              const channel = subscribeToUserUpdates(supabaseUser.id, handleUserUpdate);
-              channelRef.current = channel;
-            } else {
-              // Если supabaseUser null, используем локальные данные
-              setUserData(createLocalUserData(telegramUser));
-              setOfflineMode(true);
-            }
-          } catch (supabaseError) {
-            console.error("Ошибка Supabase:", supabaseError);
-            // Используем локальные данные в случае ошибки
-            setUserData(createLocalUserData(telegramUser));
-            setOfflineMode(true);
+          // Get or create user in Supabase
+          const supabaseUser = await createOrGetUser(telegramUser);
+          if (supabaseUser) {
+            setUserData(supabaseUser);
+            // Subscribe to updates
+            const channel = subscribeToUserUpdates(supabaseUser.id, handleUserUpdate);
+            channelRef.current = channel;
           }
         } else {
           setError("Не удалось получить данные пользователя Telegram");
@@ -122,17 +82,6 @@ export const TelegramAuthProvider: React.FC<TelegramAuthProviderProps> = ({ chil
       } catch (err) {
         console.error("Ошибка аутентификации:", err);
         setError("Ошибка аутентификации");
-        
-        // В случае ошибки, пытаемся создать минимальный объект пользователя
-        const backupUser = getUserInfo() || {
-          id: "anonymous",
-          firstName: "Гость",
-          lastName: "",
-          username: "",
-        };
-        setUser(backupUser);
-        setUserData(createLocalUserData(backupUser));
-        setOfflineMode(true);
       } finally {
         setLoading(false);
       }
@@ -142,23 +91,21 @@ export const TelegramAuthProvider: React.FC<TelegramAuthProviderProps> = ({ chil
 
     // Cleanup function
     return () => {
-      if (channelRef.current && !offlineMode) {
+      if (channelRef.current) {
         unsubscribeFromUserUpdates(channelRef.current);
       }
     };
-  }, [isInTelegram, getUserInfo, offlineMode]);
+  }, [isInTelegram, getUserInfo]);
 
   // Handle realtime user updates
   const handleUserUpdate = (updatedUser: UserData) => {
-    if (!offlineMode) {
-      setUserData(updatedUser);
-    }
+    setUserData(updatedUser);
   };
 
   // Refresh user data
   const refreshUserData = async () => {
     try {
-      if (!user?.id || offlineMode) return;
+      if (!user?.id) return;
       
       const refreshedUserData = await getUserByTelegramId(user.id);
       if (refreshedUserData) {
