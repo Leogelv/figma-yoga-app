@@ -1,25 +1,16 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Home, Book, Calendar, User, ArrowRight, Check } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 import QuizButton from '@/components/quiz/QuizButton';
+import TelegramLayout from '@/components/layout/TelegramLayout';
+import PageHeader from '@/components/layout/PageHeader';
+import { useTelegramAuth } from '@/context/TelegramAuthContext';
 
 export default function HomePage() {
   const router = useRouter();
-  const [tg, setTg] = useState<any>(null);
-
-  useEffect(() => {
-    // Инициализация Telegram Mini App
-    const telegram = window.Telegram?.WebApp;
-    if (telegram) {
-      telegram.ready();
-      setTg(telegram);
-      
-      // Настраиваем цвет верхней панели
-      telegram.setHeaderColor('#FFFFFF');
-    }
-  }, []);
+  const { user, userData } = useTelegramAuth();
 
   const handleQuickPractice = () => {
     router.push('/practice/quick');
@@ -30,18 +21,20 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-[100dvh] max-w-[375px] mx-auto relative overflow-hidden flex flex-col bg-background">
+    <TelegramLayout noVerticalSwipe={true} topPadding={0} showBottomNav={true}>
       {/* Верхняя часть с профилем и баллами */}
       <header className="flex justify-between items-center px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
-            <User size={18} className="text-foreground opacity-70" />
+          <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center">
+            {user && user.firstName ? user.firstName.charAt(0).toUpperCase() : 'Г'}
           </div>
-          <span className="text-base font-medium text-foreground">Привет, Пользователь</span>
+          <span className="text-base font-medium text-foreground">
+            {user ? `Привет, ${user.firstName || 'Пользователь'}` : 'Привет, Пользователь'}
+          </span>
         </div>
         
         <div className="flex items-center gap-1.5">
-          <span className="text-base font-medium text-foreground">150</span>
+          <span className="text-base font-medium text-foreground">{userData?.points || 150}</span>
           <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
             <span className="text-xs font-semibold text-primary">₽</span>
           </div>
@@ -112,12 +105,12 @@ export default function HomePage() {
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-muted/50 rounded-xl p-4">
               <div className="text-sm text-muted-foreground mb-1">Всего практик</div>
-              <div className="text-xl font-bold text-foreground">12</div>
+              <div className="text-xl font-bold text-foreground">{userData?.totalPractices || 12}</div>
             </div>
             
             <div className="bg-muted/50 rounded-xl p-4">
               <div className="text-sm text-muted-foreground mb-1">Часов практики</div>
-              <div className="text-xl font-bold text-foreground">5.5</div>
+              <div className="text-xl font-bold text-foreground">{userData?.totalHours || 5.5}</div>
             </div>
           </div>
           
@@ -153,30 +146,7 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-
-      {/* Нижняя навигация */}
-      <div className="flex justify-between items-center px-8 py-3 border-t border-border bg-background">
-        <button className="flex flex-col items-center gap-1">
-          <Home size={20} className="text-primary" />
-          <span className="text-xs font-medium text-primary">Главная</span>
-        </button>
-        
-        <button className="flex flex-col items-center gap-1">
-          <Book size={20} className="text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">Библиотека</span>
-        </button>
-        
-        <button className="flex flex-col items-center gap-1">
-          <Calendar size={20} className="text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">Расписание</span>
-        </button>
-        
-        <button className="flex flex-col items-center gap-1">
-          <User size={20} className="text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">Профиль</span>
-        </button>
-      </div>
-    </main>
+    </TelegramLayout>
   );
 }
 

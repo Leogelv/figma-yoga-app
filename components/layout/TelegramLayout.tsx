@@ -21,10 +21,21 @@ const TelegramLayout: React.FC<TelegramLayoutProps> = ({
   className = '',
   showBottomNav = true,
 }) => {
-  const { isInTelegram } = useTelegram();
+  const { isInTelegram, tg } = useTelegram();
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Handle vertical swipes only on client
+  // Раскрываем приложение на весь экран при монтировании
+  useEffect(() => {
+    if (isInTelegram && tg.expand) {
+      try {
+        tg.expand();
+      } catch (e) {
+        console.log('Failed to expand app:', e);
+      }
+    }
+  }, [isInTelegram, tg]);
+
+  // Обработка вертикальных свайпов только на клиенте
   useEffect(() => {
     if (typeof window === 'undefined' || !noVerticalSwipe || !containerRef.current) return;
 
@@ -38,7 +49,7 @@ const TelegramLayout: React.FC<TelegramLayoutProps> = ({
       return true;
     };
 
-    // Prevent vertical swipes
+    // Предотвращение вертикальных свайпов
     const preventVerticalSwipe = (e: TouchEvent) => {
       const touchStartY = e.touches[0].clientY;
       
@@ -46,7 +57,7 @@ const TelegramLayout: React.FC<TelegramLayoutProps> = ({
         const touchY = moveEvent.touches[0].clientY;
         const deltaY = touchY - touchStartY;
         
-        // If vertical swipe is significant, block it
+        // Если вертикальный свайп значительный, блокируем его
         if (Math.abs(deltaY) > 10) {
           moveEvent.preventDefault();
         }
@@ -61,7 +72,7 @@ const TelegramLayout: React.FC<TelegramLayoutProps> = ({
       document.addEventListener('touchend', handleTouchEnd);
     };
     
-    // Apply handlers
+    // Применяем обработчики
     container.addEventListener('touchstart', preventVerticalSwipe, { passive: false });
     document.addEventListener('keydown', preventDefaultForScrollKeys, false);
     
@@ -85,7 +96,7 @@ const TelegramLayout: React.FC<TelegramLayoutProps> = ({
         WebkitOverflowScrolling: 'touch',
       }}
     >
-      <div className="h-full w-full">
+      <div className="h-full w-full animate-fadeIn">
         {children}
       </div>
       

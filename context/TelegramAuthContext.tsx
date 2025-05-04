@@ -33,72 +33,91 @@ interface TelegramAuthProviderProps {
 }
 
 export const TelegramAuthProvider: React.FC<TelegramAuthProviderProps> = ({ children }) => {
-  const { isInTelegram, getUserInfo } = useTelegram();
+  const { isInTelegram, getUserInfo, tg } = useTelegram();
   const [user, setUser] = useState<TelegramUser | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<any>(null);
+  const initAttemptedRef = useRef<boolean>(false);
+
+  // Функция для загрузки и установки данных пользователя
+  const setupUserData = async (telegramUser: TelegramUser) => {
+    try {
+      setUser(telegramUser);
+      console.log('Setting up user data for:', telegramUser);
+      
+      // Получаем или создаем пользователя в Supabase
+      const supabaseUser = await createOrGetUser(telegramUser);
+      if (supabaseUser) {
+        setUserData(supabaseUser);
+        // Подписываемся на обновления
+        const channel = subscribeToUserUpdates(supabaseUser.id, handleUserUpdate);
+        channelRef.current = channel;
+      }
+    } catch (err) {
+      console.error("Error setting up user data:", err);
+      setError("Ошибка при настройке данных пользователя");
+    }
+  };
 
   // Initialize auth on component mount
   useEffect(() => {
     const initAuth = async () => {
+      if (initAttemptedRef.current) return;
+      initAttemptedRef.current = true;
+      
       try {
-        // Get Telegram user data
+        // Попытка расширить приложение на весь экран
+        if (isInTelegram && tg && tg.expand) {
+          try {
+            tg.expand();
+          } catch (e) {
+            console.log('Failed to expand:', e);
+          }
+        }
+
+        // Получаем данные Telegram пользователя
         const telegramUser = getUserInfo();
+        console.log('Telegram user info:', telegramUser);
         
-        if (!isInTelegram || !telegramUser) {
-          // Mock user for development when not in Telegram
-          const mockUser = {
+        if (telegramUser && telegramUser.id) {
+          await setupUserData(telegramUser as TelegramUser);
+        } else {
+          // Мок-пользователь для разработки, когда не в Telegram
+          const mockUser: TelegramUser = {
             id: "12345",
             firstName: "Test",
             lastName: "User",
             username: "testuser",
           };
-          setUser(mockUser);
-          
-          // Get or create user in Supabase
-          const supabaseUser = await createOrGetUser(mockUser);
-          if (supabaseUser) {
-            setUserData(supabaseUser);
-            // Subscribe to updates
-            const channel = subscribeToUserUpdates(supabaseUser.id, handleUserUpdate);
-            channelRef.current = channel;
-          }
-        } else if (telegramUser) {
-          setUser(telegramUser);
-          
-          // Get or create user in Supabase
-          const supabaseUser = await createOrGetUser(telegramUser);
-          if (supabaseUser) {
-            setUserData(supabaseUser);
-            // Subscribe to updates
-            const channel = subscribeToUserUpdates(supabaseUser.id, handleUserUpdate);
-            channelRef.current = channel;
-          }
-        } else {
-          setError("Не удалось получить данные пользователя Telegram");
+          await setupUserData(mockUser);
         }
       } catch (err) {
-        console.error("Ошибка аутентификации:", err);
+        console.error("Auth error:", err);
         setError("Ошибка аутентификации");
       } finally {
         setLoading(false);
       }
     };
 
-    initAuth();
+    // Задержка для уверенности, что WebApp полностью инициализирован
+    const timeoutId = setTimeout(() => {
+      initAuth();
+    }, 100);
 
     // Cleanup function
     return () => {
+      clearTimeout(timeoutId);
       if (channelRef.current) {
         unsubscribeFromUserUpdates(channelRef.current);
       }
     };
-  }, [isInTelegram, getUserInfo]);
+  }, [isInTelegram, getUserInfo, tg]);
 
   // Handle realtime user updates
   const handleUserUpdate = (updatedUser: UserData) => {
+    console.log('User data updated:', updatedUser);
     setUserData(updatedUser);
   };
 
@@ -120,7 +139,6 @@ export const TelegramAuthProvider: React.FC<TelegramAuthProviderProps> = ({ chil
   const logout = () => {
     setUser(null);
     setUserData(null);
-    // Можно добавить логику для очистки локального хранилища, если потребуется
   };
 
   return (

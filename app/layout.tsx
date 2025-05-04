@@ -29,17 +29,35 @@ export default function RootLayout({
                   WebApp: {
                     initData: '',
                     initDataUnsafe: { user: null },
-                    ready: function() {},
-                    expand: function() {},
-                    close: function() {},
+                    ready: function() { console.log('Telegram WebApp ready called'); },
+                    expand: function() { console.log('Telegram WebApp expand called'); },
+                    close: function() { console.log('Telegram WebApp close called'); },
                     showAlert: function(message) { console.log('TG Alert:', message); },
-                    showPopup: function() {},
-                    setHeaderColor: function() {},
-                    enableClosingConfirmation: function() {},
+                    showPopup: function(params) { 
+                      console.log('TG Popup:', params.title, params.message);
+                      setTimeout(() => {
+                        if (params.buttons && params.buttons.length > 0) {
+                          const defaultButton = params.buttons.find(b => b.type === 'default') || params.buttons[0];
+                          if (defaultButton.id) {
+                            window.Telegram.WebApp.triggerEvent('popupClosed', {button_id: defaultButton.id});
+                          }
+                        }
+                      }, 2000);
+                    },
+                    setHeaderColor: function(color) { console.log('TG setHeaderColor:', color); },
+                    enableClosingConfirmation: function() { console.log('TG enableClosingConfirmation called'); },
+                    disableClosingConfirmation: function() { console.log('TG disableClosingConfirmation called'); },
+                    showProgress: function() { console.log('TG showProgress called'); },
+                    stopProgress: function() { console.log('TG stopProgress called'); },
+                    isVersionAtLeast: function(ver) { return true; },
+                    triggerEvent: function(eventName, eventData) {
+                      console.log('TG triggerEvent:', eventName, eventData);
+                    },
                     BackButton: {
-                      show: function() {},
-                      hide: function() {},
-                      onClick: function() {}
+                      show: function() { console.log('TG BackButton show called'); },
+                      hide: function() { console.log('TG BackButton hide called'); },
+                      onClick: function(callback) { console.log('TG BackButton onClick set'); },
+                      isVisible: false
                     }
                   }
                 };
@@ -51,7 +69,9 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <TelegramAuthProvider>
-          {children}
+          <PracticeFlowProvider>
+            {children}
+          </PracticeFlowProvider>
         </TelegramAuthProvider>
       </body>
     </html>

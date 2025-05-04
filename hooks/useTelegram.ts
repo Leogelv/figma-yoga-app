@@ -2,23 +2,18 @@
 
 import { useEffect, useState } from 'react';
 
-// Create a mock WebApp that will be used outside of Telegram
+// Создаем заглушку для WebApp, которая будет использоваться вне Telegram
 const createMockWebApp = () => {
   return {
     initData: '',
     initDataUnsafe: { user: null },
     ready: () => {},
-    setHeaderColor: (color: string) => {
-      console.log('Mock setHeaderColor:', color);
-    },
+    setHeaderColor: () => {},
     enableClosingConfirmation: () => {},
     BackButton: {
       show: () => {},
       hide: () => {},
-      onClick: (callback: () => void) => {
-        console.log('Mock BackButton onClick set');
-      },
-      isVisible: false
+      onClick: () => {}
     },
     expand: () => {},
     showAlert: (message: string) => { console.log('TG Alert:', message); },
@@ -30,19 +25,32 @@ const createMockWebApp = () => {
   };
 };
 
-// Check WebApp availability and use mock if it's not available
+// Проверяем доступность WebApp и используем заглушку, если его нет
 const getWebApp = () => {
   if (typeof window !== 'undefined') {
-    // @ts-ignore - в глобальном объекте window может быть объект Telegram
-    const telegramApp = window.Telegram?.WebApp;
-    if (telegramApp) {
-      return telegramApp;
+    // Пробуем получить WebApp из window.Telegram
+    const telegramWebApp = (window as any).Telegram?.WebApp;
+    if (telegramWebApp) {
+      return telegramWebApp;
+    }
+    
+    // Пробуем импортировать из @twa-dev/sdk, если доступно
+    try {
+      // Динамический импорт для предотвращения ошибок при сборке
+      const WebAppModule = require('@twa-dev/sdk');
+      if (WebAppModule.default) {
+        return WebAppModule.default;
+      }
+    } catch (error) {
+      console.log('TG SDK not available:', error);
     }
   }
+  
+  // Возвращаем заглушку, если ничего не найдено
   return createMockWebApp();
 };
 
-// Interface for getUserInfo function return
+// Интерфейс для возвращаемого значения функции getUserInfo
 interface UserInfo {
   id: string | number;
   username?: string;
@@ -51,102 +59,209 @@ interface UserInfo {
   [key: string]: any;
 }
 
-// Hook to interact with Telegram WebApp
 export const useTelegram = () => {
   const [isReady, setIsReady] = useState(false);
-  const webApp = getWebApp();
-  const tg = webApp;
+  const [WebApp, setWebApp] = useState<any>(createMockWebApp());
 
-  // Determine if we are in Telegram or not
-  const isInTelegram = Boolean(typeof window !== 'undefined' && window.Telegram);
+  useEffect(() => {
+    // Инициализируем WebApp только на клиенте
+    if (typeof window !== 'undefined') {
+      const tgWebApp = getWebApp();
+      setWebApp(tgWebApp);
+      
+      // Инициализация WebApp
+      if (tgWebApp.initData) {
+        tgWebApp.ready();
+        setIsReady(true);
+      }
 
-  // Function to get user info from Telegram
-  const getUserInfo = (): UserInfo | null => {
-    if (!isInTelegram || !webApp.initDataUnsafe.user) {
-      // Return mock user for development
+      // Установка настроек для Telegram Mini App
+      try {
+        tgWebApp.setHeaderColor('#0056B3'); // Цвет хедера
+        tgWebApp.enableClosingConfirmation();
+        
+        // Раскрытие приложения на весь экран
+        if (tgWebApp.expand) {
+          tgWebApp.expand();
+        }
+      } catch (error) {
+        console.log('TG methods not available:', error);
+      }
+    }
+
+    // Функция очистки
+    return () => {
+      try {
+        if (WebApp.BackButton) {
+          WebApp.BackButton.hide();
+        }
+      } catch (error) {
+        console.log('Error hiding back button:', error);
+      }
+    };
+  }, []);
+
+  // Получение информации о пользователе
+  const getUserInfo = (): UserInfo => {
+    try {
+      if (!WebApp.initDataUnsafe || !WebApp.initDataUnsafe.user) {
+        return {
+          id: 'guest_' + Date.now().toString().slice(0, -3),
+          username: 'Guest',
+          firstName: 'Guest',
+          lastName: 'User',
+        };
+      }
+      const { id, username, first_name, last_name, ...restUserData } = WebApp.initDataUnsafe.user;
       return {
-        id: 'guest_' + Date.now().toString().slice(0, -3), // Use timestamp as a unique ID
+        id,
+        username,
+        firstName: first_name,
+        lastName: last_name,
+        ...restUserData
+      };
+    } catch (error) {
+      console.log('Error getting user info:', error);
+      return {
+        id: 'guest_' + Date.now(),
+        username: 'Guest',
         firstName: 'Guest',
         lastName: 'User',
-        username: 'guest_user'
       };
     }
-
-    const { id, username, first_name, last_name, ...restUserData } = webApp.initDataUnsafe.user;
-    return {
-      id,
-      username,
-      firstName: first_name,
-      lastName: last_name,
-      ...restUserData
-    };
   };
 
-  // Function to show alert in Telegram
+  // Проверка, запущено ли приложение внутри Telegram
+  const isInTelegram = Boolean(WebApp.initData);
+
+  // Показать уведомление Telegram
   const showAlert = (message: string) => {
-    webApp.showAlert(message);
+    try {
+      if (WebApp.showAlert) {
+        WebApp.showAlert(message);
+      } else {
+        alert(message);
+      }
+    } catch (error) {
+      console.log('Error showing alert:', error);
+      alert(message);
+    }
   };
 
-  // Function to show popup in Telegram
-  const showPopup = (
-    title: string,
-    message: string,
-    buttons: { type: 'default' | 'ok' | 'close' | 'cancel' | 'destructive'; text: string }[]
-  ) => {
-    webApp.showPopup({ title, message, buttons });
+  // Показать всплывающее сообщение Telegram
+  const showPopup = (title: string, message: string, buttons: { type: 'default' | 'ok' | 'close' | 'cancel' | 'destructive', text: string }[]) => {
+    try {
+      if (WebApp.showPopup) {
+        WebApp.showPopup({
+          title,
+          message,
+          buttons
+        });
+      } else {
+        alert(`${title}\n${message}`);
+      }
+    } catch (error) {
+      console.log('Error showing popup:', error);
+      alert(`${title}\n${message}`);
+    }
   };
 
-  // Function to close the app
-  const closeApp = () => {
-    webApp.close();
+  // Закрыть мини-приложение
+  const close = () => {
+    try {
+      if (WebApp.close) {
+        WebApp.close();
+      }
+    } catch (error) {
+      console.log('Error closing app:', error);
+    }
   };
 
-  // Function to set header color
+  // Показать кнопку назад
+  const showBackButton = () => {
+    try {
+      if (WebApp.BackButton) {
+        WebApp.BackButton.show();
+      }
+    } catch (error) {
+      console.log('Error showing back button:', error);
+    }
+  };
+
+  // Скрыть кнопку назад
+  const hideBackButton = () => {
+    try {
+      if (WebApp.BackButton) {
+        WebApp.BackButton.hide();
+      }
+    } catch (error) {
+      console.log('Error hiding back button:', error);
+    }
+  };
+
+  // Настройка обработчика для кнопки назад
+  const onBackButtonClick = (callback: () => void) => {
+    try {
+      if (WebApp.BackButton) {
+        WebApp.BackButton.onClick(callback);
+      }
+    } catch (error) {
+      console.log('Error setting back button callback:', error);
+    }
+  };
+
+  // Показать индикатор загрузки
+  const showLoader = () => {
+    try {
+      // Используем безопасный вызов с проверкой типа
+      if (typeof WebApp.showProgress === 'function') {
+        WebApp.showProgress();
+      }
+    } catch (error) {
+      console.log('Error showing loader:', error);
+    }
+  };
+
+  // Скрыть индикатор загрузки
+  const hideLoader = () => {
+    try {
+      // Используем безопасный вызов с проверкой типа
+      if (typeof WebApp.stopProgress === 'function') {
+        WebApp.stopProgress();
+      }
+    } catch (error) {
+      console.log('Error hiding loader:', error);
+    }
+  };
+
+  // Установка цвета заголовка
   const setHeaderColor = (color: string) => {
     try {
-      if (webApp && webApp.setHeaderColor) {
-        webApp.setHeaderColor(color);
+      if (WebApp.setHeaderColor) {
+        WebApp.setHeaderColor(color);
       }
     } catch (error) {
-      console.error('Error setting header color:', error);
+      console.log('Error setting header color:', error);
     }
   };
 
-  // Function to update back button
+  // Обновить параметры кнопки назад
   const updateBackButton = (show: boolean, callback?: () => void) => {
     try {
-      if (!webApp || !webApp.BackButton) return;
+      if (!WebApp.BackButton) return;
       
       if (show) {
-        webApp.BackButton.show();
+        WebApp.BackButton.show();
         if (callback) {
-          webApp.BackButton.onClick(callback);
+          WebApp.BackButton.onClick(callback);
         }
       } else {
-        webApp.BackButton.hide();
+        WebApp.BackButton.hide();
       }
     } catch (error) {
-      console.error('Error updating back button:', error);
+      console.log('Error updating back button:', error);
     }
   };
-
-  // Function to toggle closing confirmation
-  const toggleClosingConfirmation = (enabled: boolean) => {
-    if (enabled) {
-      webApp.enableClosingConfirmation();
-    } else {
-      // Note: there's no disableClosingConfirmation method,
-      // so to disable it, we need to implement workaround if needed
-    }
-  };
-
-  // Initialize app on mount
-  useEffect(() => {
-    if (isInTelegram && webApp.ready) {
-      webApp.ready();
-    }
-    setIsReady(true);
-  }, [webApp, isInTelegram]);
 
   return {
     isReady,
@@ -154,11 +269,15 @@ export const useTelegram = () => {
     getUserInfo,
     showAlert,
     showPopup,
-    closeApp,
+    close,
+    showBackButton,
+    hideBackButton,
+    onBackButtonClick,
+    showLoader,
+    hideLoader,
     setHeaderColor,
     updateBackButton,
-    toggleClosingConfirmation,
-    expand: webApp.expand,
-    tg
+    // Оригинальный WebApp объект для доступа к другим функциям
+    tg: WebApp
   };
 }; 
