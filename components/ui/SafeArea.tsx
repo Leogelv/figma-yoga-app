@@ -9,6 +9,7 @@ interface SafeAreaProps {
   bottom?: boolean;
   left?: boolean;
   right?: boolean;
+  className?: string;
 }
 
 export const SafeArea: React.FC<SafeAreaProps> = ({
@@ -17,6 +18,7 @@ export const SafeArea: React.FC<SafeAreaProps> = ({
   bottom = true,
   left = true,
   right = true,
+  className = "",
 }) => {
   const { safeAreaInsets, isInTelegram } = useTelegram();
 
@@ -32,7 +34,7 @@ export const SafeArea: React.FC<SafeAreaProps> = ({
   };
 
   return (
-    <div style={style} className="safe-area">
+    <div style={style} className={`safe-area ${className}`}>
       {children}
     </div>
   );
@@ -45,6 +47,7 @@ export const ContentSafeArea: React.FC<SafeAreaProps> = ({
   bottom = true,
   left = true,
   right = true,
+  className = "",
 }) => {
   const { contentSafeAreaInsets, isInTelegram } = useTelegram();
 
@@ -60,7 +63,7 @@ export const ContentSafeArea: React.FC<SafeAreaProps> = ({
   };
 
   return (
-    <div style={style} className="content-safe-area">
+    <div style={style} className={`content-safe-area ${className}`}>
       {children}
     </div>
   );

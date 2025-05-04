@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTelegramAuth } from '@/context/TelegramAuthContext';
 import TelegramLayout from '@/components/layout/TelegramLayout';
-import SafeArea from '@/components/ui/SafeArea';
+import { SafeArea } from '@/components/ui/SafeArea';
 import { usePathname } from 'next/navigation';
 import { useTelegram } from '@/hooks/useTelegram';
 
