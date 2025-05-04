@@ -33,7 +33,7 @@ interface TelegramAuthProviderProps {
 }
 
 export const TelegramAuthProvider: React.FC<TelegramAuthProviderProps> = ({ children }) => {
-  const { isInTelegram, getUserInfo, tg } = useTelegram();
+  const { isInTelegram, getUserInfo, webApp, onExpand } = useTelegram();
   const [user, setUser] = useState<TelegramUser | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -69,9 +69,9 @@ export const TelegramAuthProvider: React.FC<TelegramAuthProviderProps> = ({ chil
       
       try {
         // Попытка расширить приложение на весь экран
-        if (isInTelegram && tg && tg.expand) {
+        if (isInTelegram && webApp) {
           try {
-            tg.expand();
+            onExpand();
           } catch (e) {
             console.log('Failed to expand:', e);
           }
@@ -82,7 +82,14 @@ export const TelegramAuthProvider: React.FC<TelegramAuthProviderProps> = ({ chil
         console.log('Telegram user info:', telegramUser);
         
         if (telegramUser && telegramUser.id) {
-          await setupUserData(telegramUser as TelegramUser);
+          // Преобразуем данные в формат TelegramUser
+          const formattedUser: TelegramUser = {
+            id: telegramUser.id.toString(),
+            firstName: telegramUser.first_name || '',
+            lastName: telegramUser.last_name || '',
+            username: telegramUser.username || '',
+          };
+          await setupUserData(formattedUser);
         } else {
           // Мок-пользователь для разработки, когда не в Telegram
           const mockUser: TelegramUser = {
@@ -113,7 +120,7 @@ export const TelegramAuthProvider: React.FC<TelegramAuthProviderProps> = ({ chil
         unsubscribeFromUserUpdates(channelRef.current);
       }
     };
-  }, [isInTelegram, getUserInfo, tg]);
+  }, [isInTelegram, getUserInfo, webApp, onExpand]);
 
   // Handle realtime user updates
   const handleUserUpdate = (updatedUser: UserData) => {

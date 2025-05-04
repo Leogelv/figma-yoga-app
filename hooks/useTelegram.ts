@@ -1,144 +1,178 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { WebAppProvider, useWebApp } from '@vkruglikov/react-telegram-web-app';
 
-// Создаем заглушку для WebApp, которая будет использоваться вне Telegram
-const createMockWebApp = () => {
-  return {
-    initData: '',
-    initDataUnsafe: { user: null },
-    ready: () => {},
-    setHeaderColor: () => {},
-    enableClosingConfirmation: () => {},
-    BackButton: {
-      show: () => {},
-      hide: () => {},
-      onClick: () => {}
-    },
-    expand: () => {},
-    showAlert: (message: string) => { console.log('TG Alert:', message); },
-    showPopup: () => {},
-    close: () => {},
-    showProgress: () => {},
-    stopProgress: () => {},
-    isVersionAtLeast: () => true
-  };
-};
-
-// Проверяем доступность WebApp и используем заглушку, если его нет
-const getWebApp = () => {
-  if (typeof window !== 'undefined') {
-    // Пробуем получить WebApp из window.Telegram
-    const telegramWebApp = (window as any).Telegram?.WebApp;
-    if (telegramWebApp) {
-      return telegramWebApp;
-    }
-    
-    // Пробуем импортировать из @twa-dev/sdk, если доступно
-    try {
-      // Динамический импорт для предотвращения ошибок при сборке
-      const WebAppModule = require('@twa-dev/sdk');
-      if (WebAppModule.default) {
-        return WebAppModule.default;
-      }
-    } catch (error) {
-      console.log('TG SDK not available:', error);
-    }
-  }
-  
-  // Возвращаем заглушку, если ничего не найдено
-  return createMockWebApp();
-};
-
-// Интерфейс для возвращаемого значения функции getUserInfo
 interface UserInfo {
-  id: string | number;
+  id: number | string;
+  first_name?: string;
+  last_name?: string;
   username?: string;
-  firstName?: string;
-  lastName?: string;
-  [key: string]: any;
+  photo_url?: string;
+  is_guest?: boolean;
 }
 
 export const useTelegram = () => {
-  const [isReady, setIsReady] = useState(false);
-  const [WebApp, setWebApp] = useState<any>(createMockWebApp());
+  // Используем хук из официальной библиотеки
+  const webApp = useWebApp();
+  
+  const [safeAreaInsets, setSafeAreaInsets] = useState({
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0
+  });
+  
+  const [contentSafeAreaInsets, setContentSafeAreaInsets] = useState({
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0
+  });
+  
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
-    // Инициализируем WebApp только на клиенте
-    if (typeof window !== 'undefined') {
-      const tgWebApp = getWebApp();
-      setWebApp(tgWebApp);
+    if (webApp) {
+      // Инициализация
+      webApp.ready();
       
-      // Инициализация WebApp
-      if (tgWebApp.initData) {
-        tgWebApp.ready();
-        setIsReady(true);
+      // Инициализация safe area insets, если доступны
+      if ('safeAreaInset' in webApp) {
+        setSafeAreaInsets(webApp.safeAreaInset as any);
       }
-
-      // Установка настроек для Telegram Mini App
-      try {
-        tgWebApp.setHeaderColor('#0056B3'); // Цвет хедера
-        tgWebApp.enableClosingConfirmation();
-        
-        // Раскрытие приложения на весь экран
-        if (tgWebApp.expand) {
-          tgWebApp.expand();
+      
+      if ('contentSafeAreaInset' in webApp) {
+        setContentSafeAreaInsets(webApp.contentSafeAreaInset as any);
+      }
+      
+      if ('isFullscreen' in webApp) {
+        setIsFullscreen(webApp.isFullscreen as boolean);
+      }
+      
+      // Обработчики событий
+      const handleSafeAreaChanged = () => {
+        if ('safeAreaInset' in webApp) {
+          setSafeAreaInsets(webApp.safeAreaInset as any);
         }
+      };
+      
+      const handleContentSafeAreaChanged = () => {
+        if ('contentSafeAreaInset' in webApp) {
+          setContentSafeAreaInsets(webApp.contentSafeAreaInset as any);
+        }
+      };
+      
+      const handleFullscreenChanged = () => {
+        if ('isFullscreen' in webApp) {
+          setIsFullscreen(webApp.isFullscreen as boolean);
+        }
+      };
+      
+      webApp.onEvent('safeAreaChanged', handleSafeAreaChanged);
+      webApp.onEvent('contentSafeAreaChanged', handleContentSafeAreaChanged);
+      webApp.onEvent('fullscreenChanged', handleFullscreenChanged);
+      
+      return () => {
+        webApp.offEvent('safeAreaChanged', handleSafeAreaChanged);
+        webApp.offEvent('contentSafeAreaChanged', handleContentSafeAreaChanged);
+        webApp.offEvent('fullscreenChanged', handleFullscreenChanged);
+      };
+    }
+  }, [webApp]);
+
+  const onClose = useCallback(() => {
+    if (webApp) {
+      webApp.close();
+    }
+  }, [webApp]);
+
+  const onExpand = useCallback(() => {
+    if (webApp) {
+      webApp.expand();
+    }
+  }, [webApp]);
+
+  const onReady = useCallback(() => {
+    if (webApp) {
+      webApp.ready();
+    }
+  }, [webApp]);
+  
+  const requestFullscreen = useCallback(async () => {
+    if (webApp && 'requestFullscreen' in webApp) {
+      try {
+        await (webApp as any).requestFullscreen();
+        return true;
       } catch (error) {
-        console.log('TG methods not available:', error);
+        console.error('Fullscreen request failed:', error);
+        return false;
       }
     }
-
-    // Функция очистки
-    return () => {
+    return false;
+  }, [webApp]);
+  
+  const exitFullscreen = useCallback(async () => {
+    if (webApp && 'exitFullscreen' in webApp) {
       try {
-        if (WebApp.BackButton) {
-          WebApp.BackButton.hide();
-        }
+        await (webApp as any).exitFullscreen();
+        return true;
       } catch (error) {
-        console.log('Error hiding back button:', error);
+        console.error('Exit fullscreen failed:', error);
+        return false;
       }
-    };
-  }, []);
+    }
+    return false;
+  }, [webApp]);
+  
+  const toggleFullscreen = useCallback(async () => {
+    if (webApp) {
+      if (isFullscreen) {
+        return exitFullscreen();
+      } else {
+        return requestFullscreen();
+      }
+    }
+    return false;
+  }, [webApp, isFullscreen, requestFullscreen, exitFullscreen]);
 
   // Получение информации о пользователе
   const getUserInfo = (): UserInfo => {
     try {
-      if (!WebApp.initDataUnsafe || !WebApp.initDataUnsafe.user) {
+      if (!webApp || !webApp.initDataUnsafe || !('user' in webApp.initDataUnsafe) || !webApp.initDataUnsafe.user) {
         return {
           id: 'guest_' + Date.now().toString().slice(0, -3),
-          username: 'Guest',
-          firstName: 'Guest',
-          lastName: 'User',
+          is_guest: true
         };
       }
-      const { id, username, first_name, last_name, ...restUserData } = WebApp.initDataUnsafe.user;
+      
+      // В этом месте мы уже знаем, что user существует
+      const user = webApp.initDataUnsafe.user;
+      const { id, username, first_name, last_name, ...restUserData } = user;
       return {
         id,
         username,
-        firstName: first_name,
-        lastName: last_name,
+        first_name,
+        last_name,
         ...restUserData
       };
-    } catch (error) {
-      console.log('Error getting user info:', error);
+    } catch (e) {
+      console.error('Error getting user info:', e);
       return {
-        id: 'guest_' + Date.now(),
-        username: 'Guest',
-        firstName: 'Guest',
-        lastName: 'User',
+        id: 'guest_' + Date.now().toString().slice(0, -3),
+        is_guest: true
       };
     }
   };
 
   // Проверка, запущено ли приложение внутри Telegram
-  const isInTelegram = Boolean(WebApp.initData);
+  const isInTelegram = Boolean(webApp?.initData);
 
   // Показать уведомление Telegram
   const showAlert = (message: string) => {
     try {
-      if (WebApp.showAlert) {
-        WebApp.showAlert(message);
+      if (webApp) {
+        webApp.showAlert(message);
       } else {
         alert(message);
       }
@@ -148,11 +182,11 @@ export const useTelegram = () => {
     }
   };
 
-  // Показать всплывающее сообщение Telegram
+  // Показать всплывающее окно Telegram
   const showPopup = (title: string, message: string, buttons: { type: 'default' | 'ok' | 'close' | 'cancel' | 'destructive', text: string }[]) => {
     try {
-      if (WebApp.showPopup) {
-        WebApp.showPopup({
+      if (webApp) {
+        webApp.showPopup({
           title,
           message,
           buttons
@@ -166,22 +200,11 @@ export const useTelegram = () => {
     }
   };
 
-  // Закрыть мини-приложение
-  const close = () => {
-    try {
-      if (WebApp.close) {
-        WebApp.close();
-      }
-    } catch (error) {
-      console.log('Error closing app:', error);
-    }
-  };
-
   // Показать кнопку назад
   const showBackButton = () => {
     try {
-      if (WebApp.BackButton) {
-        WebApp.BackButton.show();
+      if (webApp?.BackButton) {
+        webApp.BackButton.show();
       }
     } catch (error) {
       console.log('Error showing back button:', error);
@@ -191,31 +214,30 @@ export const useTelegram = () => {
   // Скрыть кнопку назад
   const hideBackButton = () => {
     try {
-      if (WebApp.BackButton) {
-        WebApp.BackButton.hide();
+      if (webApp?.BackButton) {
+        webApp.BackButton.hide();
       }
     } catch (error) {
       console.log('Error hiding back button:', error);
     }
   };
 
-  // Настройка обработчика для кнопки назад
+  // Добавить обработчик нажатия на кнопку назад
   const onBackButtonClick = (callback: () => void) => {
     try {
-      if (WebApp.BackButton) {
-        WebApp.BackButton.onClick(callback);
+      if (webApp?.BackButton) {
+        webApp.BackButton.onClick(callback);
       }
     } catch (error) {
-      console.log('Error setting back button callback:', error);
+      console.log('Error setting back button click handler:', error);
     }
   };
 
   // Показать индикатор загрузки
   const showLoader = () => {
     try {
-      // Используем безопасный вызов с проверкой типа
-      if (typeof WebApp.showProgress === 'function') {
-        WebApp.showProgress();
+      if (webApp) {
+        webApp.showProgress();
       }
     } catch (error) {
       console.log('Error showing loader:', error);
@@ -225,38 +247,35 @@ export const useTelegram = () => {
   // Скрыть индикатор загрузки
   const hideLoader = () => {
     try {
-      // Используем безопасный вызов с проверкой типа
-      if (typeof WebApp.stopProgress === 'function') {
-        WebApp.stopProgress();
+      if (webApp) {
+        webApp.stopProgress();
       }
     } catch (error) {
       console.log('Error hiding loader:', error);
     }
   };
 
-  // Установка цвета заголовка
   const setHeaderColor = (color: string) => {
     try {
-      if (WebApp.setHeaderColor) {
-        WebApp.setHeaderColor(color);
+      if (webApp) {
+        webApp.setHeaderColor(color);
       }
     } catch (error) {
       console.log('Error setting header color:', error);
     }
   };
 
-  // Обновить параметры кнопки назад
   const updateBackButton = (show: boolean, callback?: () => void) => {
     try {
-      if (!WebApp.BackButton) return;
+      if (!webApp?.BackButton) return;
       
       if (show) {
-        WebApp.BackButton.show();
+        webApp.BackButton.show();
         if (callback) {
-          WebApp.BackButton.onClick(callback);
+          webApp.BackButton.onClick(callback);
         }
       } else {
-        WebApp.BackButton.hide();
+        webApp.BackButton.hide();
       }
     } catch (error) {
       console.log('Error updating back button:', error);
@@ -264,20 +283,29 @@ export const useTelegram = () => {
   };
 
   return {
-    isReady,
+    webApp,
+    onClose,
+    onExpand,
+    onReady,
+    platform: webApp?.platform || 'unknown',
+    user: webApp?.initDataUnsafe && 'user' in webApp.initDataUnsafe ? webApp.initDataUnsafe.user : undefined,
+    queryId: webApp?.initDataUnsafe?.query_id,
+    safeAreaInsets,
+    contentSafeAreaInsets,
+    isFullscreen,
+    requestFullscreen,
+    exitFullscreen,
+    toggleFullscreen,
     isInTelegram,
     getUserInfo,
     showAlert,
     showPopup,
-    close,
     showBackButton,
     hideBackButton,
     onBackButtonClick,
     showLoader,
     hideLoader,
     setHeaderColor,
-    updateBackButton,
-    // Оригинальный WebApp объект для доступа к другим функциям
-    tg: WebApp
+    updateBackButton
   };
 }; 

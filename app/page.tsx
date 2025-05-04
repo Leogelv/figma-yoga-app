@@ -21,7 +21,11 @@ export default function HomePage() {
   };
 
   return (
-    <TelegramLayout noVerticalSwipe={true} topPadding={0} showBottomNav={true}>
+    <TelegramLayout
+      expandApp={true}
+      fullscreen={true}
+      withSafeArea={true}
+    >
       {/* Верхняя часть с профилем и баллами */}
       <header className="flex justify-between items-center px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">

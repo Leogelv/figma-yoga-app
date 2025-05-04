@@ -1,7 +1,7 @@
 "use client";
 
 import React, { ReactNode } from 'react';
-import { useTelegram } from '../../hooks/useTelegram';
+import { useTelegram } from '@/hooks/useTelegram';
 
 interface SafeAreaProps {
   children: ReactNode;
@@ -9,49 +9,59 @@ interface SafeAreaProps {
   bottom?: boolean;
   left?: boolean;
   right?: boolean;
-  className?: string;
 }
 
-const SafeArea: React.FC<SafeAreaProps> = ({
+export const SafeArea: React.FC<SafeAreaProps> = ({
   children,
   top = true,
   bottom = true,
   left = true,
   right = true,
-  className = '',
 }) => {
-  const { isInTelegram } = useTelegram();
-  
-  // Default safe area values (can be adjusted based on device)
-  const safeAreaInsets = {
-    top: top ? 'env(safe-area-inset-top, 0px)' : '0px',
-    bottom: bottom ? 'env(safe-area-inset-bottom, 0px)' : '0px',
-    left: left ? 'env(safe-area-inset-left, 0px)' : '0px',
-    right: right ? 'env(safe-area-inset-right, 0px)' : '0px',
-  };
+  const { safeAreaInsets, isInTelegram } = useTelegram();
 
-  // Extra padding for Telegram environment
-  const telegramInsets = {
-    // Telegram typically has a header bar that is 42-56px high
-    top: isInTelegram && top ? '56px' : '0px',
-    bottom: '0px',
-    left: '0px',
-    right: '0px',
+  // Если приложение не запущено в Telegram, используем стандартные отступы
+  const insets = isInTelegram ? safeAreaInsets : { top: 0, bottom: 0, left: 0, right: 0 };
+
+  // Создаем стили на основе переданных параметров и инсетов
+  const style = {
+    paddingTop: top ? `${insets.top}px` : 0,
+    paddingBottom: bottom ? `${insets.bottom}px` : 0,
+    paddingLeft: left ? `${insets.left}px` : 0,
+    paddingRight: right ? `${insets.right}px` : 0,
   };
 
   return (
-    <div 
-      className={`safe-area ${className}`}
-      style={{
-        paddingTop: `calc(${safeAreaInsets.top} + ${telegramInsets.top})`,
-        paddingBottom: `calc(${safeAreaInsets.bottom} + ${telegramInsets.bottom})`,
-        paddingLeft: `calc(${safeAreaInsets.left} + ${telegramInsets.left})`,
-        paddingRight: `calc(${safeAreaInsets.right} + ${telegramInsets.right})`,
-      }}
-    >
+    <div style={style} className="safe-area">
       {children}
     </div>
   );
 };
 
-export default SafeArea; 
+// Также создаем компонент для контентной области, которая может иметь другие инсеты
+export const ContentSafeArea: React.FC<SafeAreaProps> = ({
+  children,
+  top = true,
+  bottom = true,
+  left = true,
+  right = true,
+}) => {
+  const { contentSafeAreaInsets, isInTelegram } = useTelegram();
+
+  // Если приложение не запущено в Telegram, используем стандартные отступы
+  const insets = isInTelegram ? contentSafeAreaInsets : { top: 0, bottom: 0, left: 0, right: 0 };
+
+  // Создаем стили на основе переданных параметров и инсетов
+  const style = {
+    paddingTop: top ? `${insets.top}px` : 0,
+    paddingBottom: bottom ? `${insets.bottom}px` : 0,
+    paddingLeft: left ? `${insets.left}px` : 0,
+    paddingRight: right ? `${insets.right}px` : 0,
+  };
+
+  return (
+    <div style={style} className="content-safe-area">
+      {children}
+    </div>
+  );
+}; 
