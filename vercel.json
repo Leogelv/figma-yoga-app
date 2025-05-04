@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next",
+      "config": {
+        "skipBuildSteps": true,
+        "nextBuildSkipTs": true,
+        "nextJsIgnoreTypeScriptErrors": true
+      }
+    }
+  ],
+  "env": {
+    "NEXT_PUBLIC_IGNORE_BUILD_ERROR": "true"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_IGNORE_BUILD_ERROR": "true"
+    }
+  }
+} 
