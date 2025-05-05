@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
-  distDir: '.next',
+  output: 'export',
+  distDir: 'out',
   env: {
     NEXT_PUBLIC_IGNORE_BUILD_ERROR: 'true',
   },
@@ -11,16 +11,8 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  experimental: {
-    esmExternals: true,
-  },
-  async rewrites() {
-    return [
-      {
-        source: '/quiz/:path*',
-        destination: '/',
-      },
-    ];
+  images: {
+    unoptimized: true,
   },
 };
 
