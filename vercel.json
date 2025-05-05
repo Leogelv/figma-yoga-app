@@ -1,14 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "yarn build:force",
+  "buildCommand": false,
   "outputDirectory": "out",
-  "ignoreCommand": "exit 0",
-  "env": {
-    "NEXT_PUBLIC_IGNORE_BUILD_ERROR": "true"
-  },
-  "build": {
-    "env": {
-      "NEXT_PUBLIC_IGNORE_BUILD_ERROR": "true"
-    }
-  }
+  "framework": null
 } 
